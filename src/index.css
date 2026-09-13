@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --color-surface: #0b1220;
+  --color-card: #121b2f;
+  --color-card-2: #182339;
+  --color-line: rgba(148, 163, 184, 0.14);
+  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+}
+
+html {
+  color-scheme: dark;
+  height: 100%;
+}
+
+body {
+  @apply bg-surface text-slate-100 antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  min-height: 100%;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+input, select, textarea {
+  @apply bg-card-2 text-slate-100 placeholder:text-slate-500 rounded-2xl px-4 h-12 w-full border border-line outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20;
+}
+select { appearance: none; }
+textarea { @apply h-auto py-3; }
+
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
