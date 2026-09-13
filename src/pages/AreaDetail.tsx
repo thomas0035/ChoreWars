@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { useAreaViews, queryKeys } from '@/hooks/useHouse'
 import { useAreaActions } from '@/hooks/useAreaActions'
+import { useUndoCompletion } from '@/hooks/useUndoCompletion'
 import { fetchHistory } from '@/lib/api'
 import { hoursHuman, intervalRange, timeAgo, timeUntil } from '@/lib/format'
 import { STATUS_STYLES } from '@/lib/status'
@@ -13,8 +14,9 @@ import { CompletionItem } from './History'
 export function AreaDetailPage() {
   const { id } = useParams()
   const nav = useNavigate()
-  const { views, now, isLoading, error, me } = useAreaViews()
+  const { views, now, isLoading, error, me, isAdmin } = useAreaViews()
   const { request, sheet } = useAreaActions(now)
+  const undo = useUndoCompletion()
   const history = useQuery({ queryKey: queryKeys.history({ areaId: id, limit: 8 }), queryFn: () => fetchHistory({ areaId: id, limit: 8 }), enabled: Boolean(id) })
 
   if (isLoading) return <PageLoading />
@@ -119,10 +121,13 @@ export function AreaDetailPage() {
       <Card className="divide-y divide-line py-1">
         {history.isLoading && <p className="text-sm text-slate-500 py-3">Loading…</p>}
         {history.data?.length === 0 && <p className="text-sm text-slate-500 py-3">No cleanings recorded yet.</p>}
-        {history.data?.map((c) => <CompletionItem key={c.id} c={c} showArea={false} meId={me.id} />)}
+        {history.data?.map((c, i) => (
+          <CompletionItem key={c.id} c={c} showArea={false} meId={me.id} onUndo={isAdmin && i === 0 && !isActive ? () => undo.request(c) : undefined} />
+        ))}
       </Card>
 
       {sheet}
+      {undo.sheet}
     </div>
   )
 }

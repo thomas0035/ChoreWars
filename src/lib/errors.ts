@@ -19,6 +19,9 @@ const COPY: Record<string, string> = {
   cannot_remove_self: "You can't remove yourself.",
   user_not_found: 'No account with that email. Create it in Supabase Auth first.',
   unknown_setting: 'Unknown setting.',
+  completion_not_found: 'That completion no longer exists.',
+  not_latest_completion: 'Only the most recent completion of an area can be undone.',
+  area_active: 'This area is currently flagged. Use "Looks fine" to clear the flag first, then undo.',
   invalid_timezone: "That isn't a valid IANA timezone (e.g. Europe/London).",
   invalid_value: 'That value is not allowed.',
 }

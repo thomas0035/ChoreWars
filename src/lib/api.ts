@@ -152,6 +152,12 @@ export async function adminSetScheduledUser(areaId: string, userId: string) {
 export async function adminSetLastCleaned(areaId: string, atIso: string, userId?: string | null) {
   return unwrap(await supabase.rpc('admin_set_last_cleaned', { p_area_id: areaId, p_at: atIso, p_user_id: userId ?? null }))
 }
+export async function adminUndoCompletion(completionId: string) {
+  return unwrap(await supabase.rpc('admin_undo_completion', { p_completion_id: completionId })) as { area_id: string }
+}
+export async function adminResetHouse(mode: 'scores' | 'everything') {
+  return unwrap(await supabase.rpc('admin_reset_house', { p_mode: mode }))
+}
 export async function adminSetMemberRole(userId: string, role: HouseRole) {
   return unwrap(await supabase.rpc('admin_set_member_role', { p_user_id: userId, p_role: role }))
 }

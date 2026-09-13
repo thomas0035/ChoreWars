@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { useHouse } from '@/hooks/useHouse'
 import { format } from 'date-fns'
 import {
-  adminAddMember, adminRemoveMember, adminRenameMember, adminSaveArea, adminSetLastCleaned, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
+  adminAddMember, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -474,7 +474,62 @@ function SettingsTab() {
           {dirty.length === 0 ? 'No changes' : `Save ${dirty.length} change${dirty.length === 1 ? '' : 's'}`}
         </Button>
       </div>
-      <p className="text-xs text-slate-500 px-1">Data: ChoreWars keeps a full audit trail (ledger + area events). Nothing here deletes history.</p>
+      <DangerZone />
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Danger zone: reset scores / reset everything
+// ---------------------------------------------------------------------------
+function DangerZone() {
+  const run = useAdminAction()
+  const [mode, setMode] = useState<'scores' | 'everything' | null>(null)
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const close = () => { if (!busy) { setMode(null); setTyped('') } }
+
+  const confirm = async () => {
+    if (!mode) return
+    setBusy(true)
+    const ok = await run(() => adminResetHouse(mode), mode === 'scores' ? 'Scores reset' : 'House reset')
+    setBusy(false)
+    if (ok) { setMode(null); setTyped('') }
+  }
+
+  return (
+    <>
+      <SectionTitle>Danger zone</SectionTitle>
+      <Card className="border-rose-400/20 space-y-3">
+        <div>
+          <div className="font-semibold">Reset scores</div>
+          <p className="text-xs text-slate-400 mt-0.5">Clears all points, streaks, achievements and weekly champions. Cleaning history is kept (shown with no points).</p>
+          <Button variant="danger" size="sm" className="mt-2" onClick={() => setMode('scores')}>Reset scores</Button>
+        </div>
+        <div className="border-t border-line pt-3">
+          <div className="font-semibold">Reset everything</div>
+          <p className="text-xs text-slate-400 mt-0.5">Also deletes all cleaning history, clears every flag and puts each rotation back to its first person. Members, areas, rotations and settings are kept.</p>
+          <Button variant="danger" size="sm" className="mt-2" onClick={() => setMode('everything')}>Reset everything</Button>
+        </div>
+        <p className="text-xs text-slate-500">To undo a single completion instead, open History or an area's Recent history and tap Undo on the latest entry.</p>
+      </Card>
+
+      <Sheet open={mode !== null} onClose={close} title={mode === 'scores' ? 'Reset all scores?' : 'Reset the whole house?'}>
+        <p className="text-sm text-slate-300">
+          {mode === 'scores'
+            ? 'Everyone goes back to 0 points, 0 streak and no achievements. This cannot be undone.'
+            : 'All points, streaks, achievements and cleaning history will be deleted, every area becomes unflagged with no last-cleaned date, and each rotation starts from its first person. This cannot be undone.'}
+        </p>
+        <Field label='Type RESET to confirm'>
+          <input value={typed} onChange={(e) => setTyped(e.target.value)} autoCapitalize="characters" autoComplete="off" placeholder="RESET" />
+        </Field>
+        <div className="flex gap-3 mt-5">
+          <Button variant="secondary" className="flex-1" onClick={close} disabled={busy}>Cancel</Button>
+          <Button variant="danger" className="flex-1" onClick={confirm} loading={busy} disabled={typed.trim().toUpperCase() !== 'RESET'}>
+            {mode === 'scores' ? 'Reset scores' : 'Reset everything'}
+          </Button>
+        </div>
+      </Sheet>
+    </>
   )
 }
