@@ -259,12 +259,12 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
   return (
     <button
       type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-      className="flex items-center justify-between w-full h-12 px-1"
+      className="flex items-center gap-3 w-full h-12 px-1 text-left"
     >
-      <span className="text-[15px]">{label}</span>
-      <span className={cx('relative h-7 w-12 rounded-full transition-colors', checked ? 'bg-emerald-400' : 'bg-slate-600')}>
+      <span className={cx('relative h-7 w-12 shrink-0 rounded-full transition-colors', checked ? 'bg-emerald-400' : 'bg-slate-600')}>
         <span className={cx('absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
       </span>
+      <span className="text-[15px]">{label}</span>
     </button>
   )
 }

@@ -154,7 +154,7 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
       expected_interval_hours: days(form.exp_days),
       attention_interval_hours: days(form.att_days),
       volunteer_grace_hours: Number(form.grace_hours),
-      reactivation_cooldown_hours: form.cooldown_hours.trim() === '' ? null : Number(form.cooldown_hours),
+      reactivation_cooldown_hours: form.cooldown_days.trim() === '' ? null : days(form.cooldown_days),
     }
     const ok = await run(async () => {
       const id = await adminSaveArea(input)
@@ -199,7 +199,7 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
           <Field label="Normal points"><input type="number" inputMode="numeric" min="0" value={form.normal_points} onChange={(e) => set('normal_points', e.target.value)} required /></Field>
           <Field label="Rescue points"><input type="number" inputMode="numeric" min="0" value={form.rescue_points} onChange={(e) => set('rescue_points', e.target.value)} required /></Field>
           <Field label="Volunteer grace (hours)"><input type="number" inputMode="numeric" min="0" value={form.grace_hours} onChange={(e) => set('grace_hours', e.target.value)} required /></Field>
-          <Field label="Re-flag cooldown (hours)" hint="Blank = house default"><input type="number" inputMode="numeric" min="0" value={form.cooldown_hours} onChange={(e) => set('cooldown_hours', e.target.value)} placeholder="default" /></Field>
+          <Field label="Re-flag cooldown (days)" hint="Blank = house default"><input type="number" inputMode="decimal" step="0.5" min="0" value={form.cooldown_days} onChange={(e) => set('cooldown_days', e.target.value)} placeholder="default" /></Field>
         </div>
 
         <SectionTitle>Rotation order</SectionTitle>
@@ -255,7 +255,7 @@ function toForm(a: Area | null) {
     exp_days: d(a?.expected_interval_hours ?? 168),
     att_days: d(a?.attention_interval_hours ?? 288),
     grace_hours: String(a?.volunteer_grace_hours ?? 24),
-    cooldown_hours: a?.reactivation_cooldown_hours == null ? '' : String(a.reactivation_cooldown_hours),
+    cooldown_days: a?.reactivation_cooldown_hours == null ? '' : d(a.reactivation_cooldown_hours),
   }
 }
 
@@ -343,6 +343,12 @@ function MembersTab() {
 // Settings
 // ---------------------------------------------------------------------------
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+/** Stored value is hours; the UI shows days (to 2 decimals). */
+function hoursToDays(hours: string): string {
+  if (hours.trim() === '') return ''
+  return String(Math.round((Number(hours) / 24) * 100) / 100)
+}
 const TZ_SUGGESTIONS = ['Asia/Kolkata', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'America/Los_Angeles', 'Asia/Dubai', 'Asia/Singapore', 'Australia/Sydney', 'UTC']
 
 function SettingsTab() {
@@ -390,8 +396,12 @@ function SettingsTab() {
           {DAYS.map((d) => <option key={d} value={d} className="capitalize">{d[0]!.toUpperCase() + d.slice(1)}</option>)}
         </select>
       </Field>
-      <Field label="Default re-flag cooldown (hours)" hint="How long after a clean before an area can be flagged again. Areas can override this.">
-        <input type="number" inputMode="numeric" min="0" value={v('default_reactivation_cooldown_hours')} onChange={(e) => set('default_reactivation_cooldown_hours', e.target.value)} />
+      <Field label="Default re-flag cooldown (days)" hint="How long after a clean before an area can be flagged again. Areas can override this.">
+        <input
+          type="number" inputMode="decimal" step="0.5" min="0"
+          value={hoursToDays(v('default_reactivation_cooldown_hours'))}
+          onChange={(e) => set('default_reactivation_cooldown_hours', e.target.value === '' ? '' : String(Math.round(Number(e.target.value) * 24)))}
+        />
       </Field>
 
       <SectionTitle>Volunteering & points</SectionTitle>
