@@ -73,6 +73,7 @@ function Row({ children }: { children: ReactNode }) {
 
 export function CompletionItem({ c, showArea = true, meId }: { c: Completion; showArea?: boolean; meId?: string }) {
   const rescue = c.completion_type === 'volunteer'
+  const logged = c.points_awarded === 0 && !rescue
   const cleanerName = c.cleaner?.name ?? 'Someone'
   const scheduledName = c.scheduled?.name ?? 'Unassigned'
   return (
@@ -87,10 +88,12 @@ export function CompletionItem({ c, showArea = true, meId }: { c: Completion; sh
           {rescue && ' 🦸'}
         </div>
         <div className="text-xs text-slate-500 truncate">
-          {rescue ? <>Volunteer rescue · scheduled: {scheduledName}</> : 'Normal turn'} · {timeLabel(c.completed_at)}
+          {logged ? 'Logged by admin' : rescue ? <>Volunteer rescue · scheduled: {scheduledName}</> : 'Normal turn'} · {timeLabel(c.completed_at)}
         </div>
       </div>
-      <span className={cx('font-bold tabular-nums', rescue ? 'text-sky-300' : 'text-emerald-300')}>+{c.points_awarded}</span>
+      {logged
+        ? <span className="text-xs text-slate-500">no pts</span>
+        : <span className={cx('font-bold tabular-nums', rescue ? 'text-sky-300' : 'text-emerald-300')}>+{c.points_awarded}</span>}
     </div>
   )
 }

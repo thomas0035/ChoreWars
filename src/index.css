@@ -40,11 +40,15 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-input, select, textarea {
-  @apply bg-card-2 text-slate-100 placeholder:text-slate-500 rounded-2xl px-4 h-12 w-full border border-line outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20;
-}
-select { appearance: none; }
-textarea { @apply h-auto py-3; }
+/* In @layer base so Tailwind utilities (e.g. w-16) can override these defaults. */
+@layer base {
+  input, select, textarea {
+    @apply bg-card-2 text-slate-100 placeholder:text-slate-500 rounded-2xl px-4 h-12 w-full border border-line outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20;
+  }
+  select { appearance: none; }
+  textarea { @apply h-auto py-3; }
+  input[type="datetime-local"], input[type="date"] { color-scheme: dark; }
 
-button { cursor: pointer; }
-button:disabled { cursor: not-allowed; }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+}

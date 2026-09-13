@@ -2,8 +2,9 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { useHouse } from '@/hooks/useHouse'
+import { format } from 'date-fns'
 import {
-  adminAddMember, adminRemoveMember, adminRenameMember, adminSaveArea, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
+  adminAddMember, adminRemoveMember, adminRenameMember, adminSaveArea, adminSetLastCleaned, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -122,13 +123,26 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
   const [rotation, setRotation] = useState<string[]>(() => area?.rotation.map((r) => r.user_id) ?? [])
   const [scheduled, setScheduled] = useState<string | null>(area?.state.current_scheduled_user_id ?? null)
   const [confirmRemove, setConfirmRemove] = useState(false)
+  const initialLastCleaned = toLocalInput(area?.state.last_cleaned_at ?? null)
+  const [lastCleaned, setLastCleaned] = useState(initialLastCleaned)
+  const [cleanedBy, setCleanedBy] = useState('')
 
   useEffect(() => {
     setForm(toForm(area))
     setRotation(area?.rotation.map((r) => r.user_id) ?? [])
     setScheduled(area?.state.current_scheduled_user_id ?? null)
     setConfirmRemove(false)
+    setLastCleaned(toLocalInput(area?.state.last_cleaned_at ?? null))
+    setCleanedBy('')
   }, [area, open])
+
+  // Picking who cleaned it last also proposes the next person in the rotation as the current turn.
+  const pickCleanedBy = (uid: string) => {
+    setCleanedBy(uid)
+    if (!uid) return
+    const i = rotation.indexOf(uid)
+    if (i >= 0 && rotation.length > 0) setScheduled(rotation[(i + 1) % rotation.length]!)
+  }
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }))
   const notInRotation = members.filter((m) => !rotation.includes(m.id))
@@ -156,9 +170,13 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
       volunteer_grace_hours: Number(form.grace_hours),
       reactivation_cooldown_hours: form.cooldown_days.trim() === '' ? null : days(form.cooldown_days),
     }
+    const lastCleanedChanged = lastCleaned !== initialLastCleaned || cleanedBy !== ''
     const ok = await run(async () => {
       const id = await adminSaveArea(input)
       await adminSetRotation(id, rotation)
+      if (lastCleanedChanged && lastCleaned) {
+        await adminSetLastCleaned(id, new Date(lastCleaned).toISOString(), cleanedBy || null)
+      }
       if (scheduled && rotation.includes(scheduled)) await adminSetScheduledUser(id, scheduled)
     }, area ? 'Area saved' : 'Area added')
     setBusy(false)
@@ -177,8 +195,12 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
     <Sheet open={open} onClose={onClose} title={area ? `Edit ${area.name}` : 'New area'}>
       <form onSubmit={submit} className="space-y-4">
         <div className="flex gap-3">
-          <Field label="Icon"><input value={form.icon} onChange={(e) => set('icon', e.target.value)} className="w-16 text-center text-xl" maxLength={4} /></Field>
-          <div className="flex-1"><Field label="Name"><input value={form.name} onChange={(e) => set('name', e.target.value)} required maxLength={40} /></Field></div>
+          <div className="w-20 shrink-0">
+            <Field label="Icon"><input value={form.icon} onChange={(e) => set('icon', e.target.value)} className="text-center text-xl px-0" maxLength={4} /></Field>
+          </div>
+          <div className="flex-1 min-w-0">
+            <Field label="Name"><input value={form.name} onChange={(e) => set('name', e.target.value)} required maxLength={40} placeholder="e.g. Kitchen" /></Field>
+          </div>
         </div>
         <div className="flex gap-1.5 flex-wrap -mt-2">
           {ICONS.map((i) => (
@@ -234,6 +256,26 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
         )}
         <p className="text-xs text-slate-500 px-1">Tap a number to set whose turn it is now.</p>
 
+        {area && (
+          <>
+            <SectionTitle>Last cleaned</SectionTitle>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="When">
+                <input type="datetime-local" value={lastCleaned} max={toLocalInput(new Date().toISOString())} onChange={(e) => setLastCleaned(e.target.value)} />
+              </Field>
+              <Field label="Cleaned by">
+                <select value={cleanedBy} onChange={(e) => pickCleanedBy(e.target.value)}>
+                  <option value="">Just set the date</option>
+                  {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
+              </Field>
+            </div>
+            <p className="text-xs text-slate-500 -mt-2 px-1">
+              For setup or corrections. No points are awarded. Choosing a person logs it in history and moves the turn to the next in rotation.
+            </p>
+          </>
+        )}
+
         <div className="flex gap-2 pt-2">
           {area && !confirmRemove && <Button type="button" variant="danger" onClick={() => setConfirmRemove(true)}>Remove</Button>}
           {area && confirmRemove && <Button type="button" variant="danger" onClick={remove} loading={busy}>Confirm remove</Button>}
@@ -242,6 +284,12 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
       </form>
     </Sheet>
   )
+}
+
+/** ISO -> value for <input type="datetime-local"> in the browser's local time. */
+function toLocalInput(iso: string | null): string {
+  if (!iso) return ''
+  return format(new Date(iso), "yyyy-MM-dd'T'HH:mm")
 }
 
 function toForm(a: Area | null) {

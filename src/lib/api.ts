@@ -149,6 +149,9 @@ export async function adminSetRotation(areaId: string, userIds: string[]) {
 export async function adminSetScheduledUser(areaId: string, userId: string) {
   return unwrap(await supabase.rpc('admin_set_scheduled_user', { p_area_id: areaId, p_user_id: userId }))
 }
+export async function adminSetLastCleaned(areaId: string, atIso: string, userId?: string | null) {
+  return unwrap(await supabase.rpc('admin_set_last_cleaned', { p_area_id: areaId, p_at: atIso, p_user_id: userId ?? null }))
+}
 export async function adminSetMemberRole(userId: string, role: HouseRole) {
   return unwrap(await supabase.rpc('admin_set_member_role', { p_user_id: userId, p_role: role }))
 }
