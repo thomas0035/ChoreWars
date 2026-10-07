@@ -49,7 +49,7 @@ export function ProfilePage() {
           <h1 className="text-3xl font-extrabold tracking-tight truncate">{person.name}</h1>
           <p className="text-slate-400 text-sm">
             {person.role === 'admin' ? 'Admin' : 'Member'}
-            {s?.weekly_rank && <> · 🏆 Rank #{s.weekly_rank} this week</>}
+            {s?.monthly_rank && <> · 🏆 Rank #{s.monthly_rank} this month</>}
           </p>
         </div>
       </div>
@@ -57,7 +57,7 @@ export function ProfilePage() {
       {stats.error && <div className="mt-4"><ErrorBox error={stats.error} retry={() => stats.refetch()} /></div>}
 
       <div className="grid grid-cols-3 gap-2 mt-5">
-        <Big icon="⭐" value={s?.weekly_points ?? '—'} label="weekly" />
+        <Big icon="⭐" value={s?.monthly_points ?? '—'} label="this month" />
         <Big icon="💎" value={s?.total_points ?? '—'} label="all time" />
         <Big icon="🔥" value={s?.current_streak ?? '—'} label="streak" />
       </div>
@@ -68,7 +68,7 @@ export function ProfilePage() {
         <Line label="Rescues 🦸" value={s?.rescues} />
         <Line label="Weekly wins 👑" value={s?.weekly_wins} />
         <Line label="Longest streak" value={s?.longest_streak} />
-        <Line label="This month" value={s ? `${s.monthly_points} pts` : undefined} />
+        <Line label="This week" value={s ? `${s.weekly_points} pts` : undefined} />
       </Card>
 
       <SectionTitle>Achievements</SectionTitle>

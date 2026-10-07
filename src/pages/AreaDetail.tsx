@@ -6,7 +6,7 @@ import { useAreaActions } from '@/hooks/useAreaActions'
 import { useUndoCompletion } from '@/hooks/useUndoCompletion'
 import { fetchHistory } from '@/lib/api'
 import { hoursHuman, intervalRange, timeAgo, timeUntil } from '@/lib/format'
-import { STATUS_STYLES } from '@/lib/status'
+import { STATUS_STYLES, voterNames } from '@/lib/status'
 import { StatusPill } from '@/components/StatusPill'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx } from '@/components/ui'
 import { CompletionItem } from './History'
@@ -31,7 +31,7 @@ export function AreaDetailPage() {
     )
   }
 
-  const { area, status, isActive, scheduled, volunteer, activatedBy, isMyTurn, amVolunteer, canComplete, canMarkNeeds, cooldownEndsAt, canVolunteer, graceEndsAt, canRelease, canDismiss, rotationPreview, volunteeringEnabled } = view
+  const { area, status, isActive, scheduled, volunteer, activatedBy, isMyTurn, amVolunteer, canComplete, canMarkNeeds, cooldownEndsAt, canVolunteer, graceEndsAt, canRelease, canDismiss, rotationPreview, volunteeringEnabled, dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss } = view
   const s = area.state
   const styles = STATUS_STYLES[status.key]
 
@@ -87,9 +87,27 @@ export function AreaDetailPage() {
                 </div>
               )
           )}
+          {isActive && (dismissVoters.length > 0 || canVoteDismiss) && (
+            <div className="rounded-2xl bg-card-2/70 border border-line p-3 text-sm">
+              {dismissVoters.length > 0 ? (
+                <p className="text-slate-300">
+                  🤷 <b>{voterNames(dismissVoters, me.id)}</b> {dismissVoters.length === 1 ? 'thinks' : 'think'} it looks fine
+                  <span className="text-slate-600"> · </span><b>{dismissVoters.length} of {dismissVotesNeeded}</b> needed to clear the flag.
+                </p>
+              ) : (
+                <p className="text-slate-400">Doesn't actually need cleaning? It takes {dismissVotesNeeded} of the {rotationPreview.length} people on this rotation to agree.</p>
+              )}
+              {(canVoteDismiss || hasVotedDismiss) && (
+                <div className="flex gap-2 mt-2">
+                  {canVoteDismiss && <Button variant="secondary" size="sm" className="flex-1" onClick={() => request('vote_dismiss', view)}>{dismissVoters.length > 0 ? 'Agree, looks fine' : 'Looks fine, not needed'}</Button>}
+                  {hasVotedDismiss && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('unvote_dismiss', view)}>Withdraw my vote</Button>}
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex gap-2">
             {canRelease && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('release', view)}>{amVolunteer ? 'Cancel my volunteer claim' : 'Clear volunteer claim'}</Button>}
-            {canDismiss && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('dismiss', view)}>Looks fine, not needed</Button>}
+            {canDismiss && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('dismiss', view)}>Clear flag (admin)</Button>}
           </div>
         </div>
       </div>

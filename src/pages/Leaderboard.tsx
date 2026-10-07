@@ -11,7 +11,7 @@ import { Avatar, Card, ErrorBox, PageLoading, cx } from '@/components/ui'
 type Period = 'week' | 'month' | 'all'
 
 export function LeaderboardPage() {
-  const [period, setPeriod] = useState<Period>('week')
+  const [period, setPeriod] = useState<Period>('month')
   const { me } = useHouse()
   const lb = useQuery({ queryKey: queryKeys.leaderboard(period), queryFn: () => fetchLeaderboard(period), enabled: Boolean(me) })
   const champ = useQuery({ queryKey: queryKeys.champion, queryFn: fetchLastWeekChampion, enabled: Boolean(me) })
@@ -26,7 +26,7 @@ export function LeaderboardPage() {
     <div>
       <h1 className="text-2xl font-extrabold tracking-tight">🏆 House League</h1>
       <div className="mt-3 grid grid-cols-3 rounded-2xl bg-card border border-line p-1">
-        {(['week', 'month', 'all'] as Period[]).map((p) => (
+        {(['month', 'week', 'all'] as Period[]).map((p) => (
           <button
             key={p}
             onClick={() => setPeriod(p)}
@@ -85,7 +85,7 @@ export function LeaderboardPage() {
       )}
 
       <p className="text-xs text-slate-500 mt-6 px-1 leading-relaxed">
-        Weekly points are the main competition — everyone starts fresh each week. All-time points are kept forever.
+        Monthly points are the main competition — everyone starts fresh each month. A weekly champion is still crowned every week, and all-time points are kept forever.
       </p>
     </div>
   )

@@ -62,11 +62,35 @@ export function initials(name: string): string {
 
 export function greeting(now: Date = new Date()): string {
   const h = now.getHours()
-  if (h < 5) return 'Up late'
+  if (h < 5) return 'Up late?'
   if (h < 12) return 'Good morning'
   if (h < 17) return 'Good afternoon'
   if (h < 22) return 'Good evening'
   return 'Good night'
+}
+
+const GREETINGS = [
+  'Welcome back',
+  'Good to see you',
+  'Hey there',
+  'Hello again',
+  'Nice to see you',
+  'Glad you’re here',
+  'Back again?',
+  'Ready when you are',
+  'How’s the house looking?',
+  'What needs doing today?',
+  'Let’s keep the place sparkling',
+  'Another day, another tidy home',
+  'The house missed you',
+  'Let’s see how things stand',
+  'Time for a quick look around',
+]
+
+/** A different greeting each visit: the time-of-day one plus a pool of generic ones. */
+export function randomGreeting(now: Date = new Date()): string {
+  const pool = [greeting(now), greeting(now), ...GREETINGS] // time-based one weighted a little higher
+  return pool[Math.floor(Math.random() * pool.length)]!
 }
 
 export function ordinal(n: number): string {

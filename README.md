@@ -1,6 +1,6 @@
 # ChoreWars
 
-Shared house-cleaning rotations, volunteering and a friendly weekly league for a six-person house. Built from `spec.md` (V3).
+Shared house-cleaning rotations, volunteering and a friendly monthly league (with a weekly champion on the side) for a six-person house. Built from `spec.md` (V3).
 
 **Stack:** React 19 + TypeScript + Vite + Tailwind v4 · Supabase (Postgres, Auth, Realtime) · PWA · Vercel.
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type {
-  Area, AreaState, Champion, Completion, CompletionResult, HouseData, HouseRole, LeaderboardRow, Member, RotationMember, UserStats,
+  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, Member, RotationMember, UserStats,
 } from './types'
 
 function unwrap<T>(res: { data: T | null; error: { message: string; details?: string } | null }): T {
@@ -17,7 +17,7 @@ function one<T>(v: T | T[] | null | undefined): T | undefined {
 // Reads
 // ---------------------------------------------------------------------------
 export async function fetchHouse(): Promise<HouseData | null> {
-  const [houses, members, areas, settings] = await Promise.all([
+  const [houses, members, areas, settings, votes] = await Promise.all([
     supabase.from('houses').select('id, name').limit(1),
     supabase.from('house_members').select('user_id, role, joined_at, profile:profiles(id, name, avatar_url)'),
     supabase
@@ -26,6 +26,7 @@ export async function fetchHouse(): Promise<HouseData | null> {
       .eq('active', true)
       .order('sort_order'),
     supabase.from('house_settings').select('key, value'),
+    supabase.from('dismiss_votes').select('cleaning_area_id, user_id'),
   ])
 
   const house = unwrap(houses)[0]
@@ -40,12 +41,17 @@ export async function fetchHouse(): Promise<HouseData | null> {
     .filter((m): m is Member => m !== null)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  type RawArea = Omit<Area, 'state' | 'rotation'> & { state: AreaState | AreaState[] | null; rotation: RotationMember[] | null }
+  const votesByArea = new Map<string, string[]>()
+  for (const v of unwrap(votes) as { cleaning_area_id: string; user_id: string }[]) {
+    votesByArea.set(v.cleaning_area_id, [...(votesByArea.get(v.cleaning_area_id) ?? []), v.user_id])
+  }
+
+  type RawArea = Omit<Area, 'state' | 'rotation' | 'dismiss_votes'> & { state: AreaState | AreaState[] | null; rotation: RotationMember[] | null }
   const areaRows: Area[] = (unwrap(areas) as RawArea[])
     .map((a) => {
       const state = one(a.state)
       if (!state) return null
-      return { ...a, state, rotation: (a.rotation ?? []).sort((x, y) => x.position - y.position) }
+      return { ...a, state, rotation: (a.rotation ?? []).sort((x, y) => x.position - y.position), dismiss_votes: votesByArea.get(a.id) ?? [] }
     })
     .filter((a): a is Area => a !== null)
 
@@ -108,8 +114,15 @@ export async function markNeedsCleaning(areaId: string) {
     area_id: string; area_name: string; area_icon: string; scheduled_user_id: string; scheduled_user_name: string
   }
 }
+/** Admin-only immediate flag clear. Members use voteDismiss. */
 export async function dismissActivation(areaId: string) {
   return unwrap(await supabase.rpc('dismiss_activation', { p_area_id: areaId }))
+}
+export async function voteDismiss(areaId: string): Promise<DismissVoteResult> {
+  return unwrap(await supabase.rpc('vote_dismiss', { p_area_id: areaId })) as DismissVoteResult
+}
+export async function retractDismissVote(areaId: string) {
+  return unwrap(await supabase.rpc('retract_dismiss_vote', { p_area_id: areaId }))
 }
 export async function claimVolunteer(areaId: string) {
   return unwrap(await supabase.rpc('claim_volunteer', { p_area_id: areaId })) as {

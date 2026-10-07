@@ -1,18 +1,20 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { useAreaViews, queryKeys } from '@/hooks/useHouse'
 import { useAreaActions } from '@/hooks/useAreaActions'
 import { fetchLeaderboard, fetchUserStats } from '@/lib/api'
-import { greeting, timeAgo, timeUntil } from '@/lib/format'
-import type { AreaView } from '@/lib/status'
+import { randomGreeting, timeAgo, timeUntil } from '@/lib/format'
+import { voterNames, type AreaView } from '@/lib/status'
 import { AreaRow } from '@/components/AreaCard'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx } from '@/components/ui'
 
 export function HomePage() {
+  const [hello] = useState(() => randomGreeting())
   const { views, now, me, isLoading, error } = useAreaViews()
   const stats = useQuery({ queryKey: queryKeys.stats(me?.id), queryFn: () => fetchUserStats(), enabled: Boolean(me) })
-  const lb = useQuery({ queryKey: queryKeys.leaderboard('week'), queryFn: () => fetchLeaderboard('week'), enabled: Boolean(me) })
+  const lb = useQuery({ queryKey: queryKeys.leaderboard('month'), queryFn: () => fetchLeaderboard('month'), enabled: Boolean(me) })
   const { request, sheet } = useAreaActions(now)
 
   if (isLoading) return <PageLoading />
@@ -25,13 +27,12 @@ export function HomePage() {
 
   return (
     <div>
-      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-slate-400 text-sm">{greeting(now)},</p>
-        <h1 className="text-3xl font-extrabold tracking-tight">{me.name} 👋</h1>
-        <div className="flex gap-2 mt-3 flex-wrap">
-          <Stat icon="⭐" label="this week" value={stats.data ? `${stats.data.weekly_points} pts` : '—'} />
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+        <h1 className="text-3xl font-extrabold tracking-tight">{hello}</h1>
+        <div className="flex justify-center gap-2 mt-3 flex-nowrap">
+          <Stat icon="⭐" label="month" value={stats.data ? `${stats.data.monthly_points} pts` : '—'} />
           <Stat icon="🔥" label="streak" value={stats.data ? `${stats.data.current_streak}` : '—'} />
-          {stats.data?.weekly_rank && <Stat icon="🏆" label="rank" value={`#${stats.data.weekly_rank}`} />}
+          <Stat icon="🏆" label="rank" value={stats.data?.monthly_rank ? `#${stats.data.monthly_rank}` : '—'} />
         </div>
       </motion.div>
 
@@ -44,7 +45,7 @@ export function HomePage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {mine.map((v) => <HeroTask key={v.area.id} view={v} now={now} onComplete={() => request('complete', v)} onRelease={() => request('release', v)} onDismiss={() => request('dismiss', v)} />)}
+          {mine.map((v) => <HeroTask key={v.area.id} view={v} now={now} meId={me.id} onComplete={() => request('complete', v)} onRelease={() => request('release', v)} onVote={() => request('vote_dismiss', v)} />)}
         </div>
       )}
 
@@ -52,7 +53,7 @@ export function HomePage() {
         <>
           <SectionTitle>Needs a hand</SectionTitle>
           <div className="space-y-3">
-            {others.map((v) => <OpenTask key={v.area.id} view={v} now={now} onVolunteer={() => request('volunteer', v)} />)}
+            {others.map((v) => <OpenTask key={v.area.id} view={v} now={now} meId={me.id} onVolunteer={() => request('volunteer', v)} onVote={() => request('vote_dismiss', v)} />)}
           </div>
         </>
       )}
@@ -63,9 +64,9 @@ export function HomePage() {
         {views.filter((v) => !v.isActive).length === 0 && <p className="text-sm text-slate-500 px-1">Every area is currently flagged. Busy house!</p>}
       </div>
 
-      <SectionTitle action={<Link to="/league" className="text-xs font-semibold text-emerald-300">Full league</Link>}>This week</SectionTitle>
+      <SectionTitle action={<Link to="/league" className="text-xs font-semibold text-emerald-300">Full league</Link>}>This month</SectionTitle>
       <Card className="divide-y divide-line py-1">
-        {top3.length === 0 && <p className="text-sm text-slate-500 py-3">No points yet this week. First clean takes the lead.</p>}
+        {top3.length === 0 && <p className="text-sm text-slate-500 py-3">No points yet this month. First clean takes the lead.</p>}
         {top3.map((r) => (
           <div key={r.user_id} className={cx('flex items-center gap-3 py-3', r.user_id === me.id && 'text-emerald-200')}>
             <span className="w-7 text-xl text-center">{['🥇', '🥈', '🥉'][r.rank - 1] ?? `${r.rank}.`}</span>
@@ -83,7 +84,7 @@ export function HomePage() {
 
 function Stat({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-full bg-card border border-line px-3 py-1.5 text-sm">
+    <div className="inline-flex items-center gap-1 rounded-full bg-card border border-line px-2.5 py-1.5 text-[13px] whitespace-nowrap">
       <span>{icon}</span>
       <span className="font-bold tabular-nums">{value}</span>
       <span className="text-slate-500">{label}</span>
@@ -91,9 +92,25 @@ function Stat({ icon, label, value }: { icon: string; label: string; value: stri
   )
 }
 
-function HeroTask({ view, now, onComplete, onRelease, onDismiss }: { view: AreaView; now: Date; onComplete: () => void; onRelease: () => void; onDismiss: () => void }) {
+/** "🤷 Priya thinks it looks fine · 1 of 3" with an Agree button for rotation members. */
+function VoteLine({ view, meId, onVote }: { view: AreaView; meId: string; onVote: () => void }) {
+  const { dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss } = view
+  if (dismissVoters.length === 0) return null
+  return (
+    <div className="mt-3 rounded-2xl bg-card-2/70 border border-line px-3 py-2 text-xs text-slate-400 flex items-center gap-2">
+      <span className="flex-1 min-w-0">
+        🤷 <b className="text-slate-200">{voterNames(dismissVoters, meId)}</b> {dismissVoters.length === 1 ? 'thinks' : 'think'} it looks fine
+        <span className="text-slate-600"> · </span>{dismissVoters.length} of {dismissVotesNeeded}
+      </span>
+      {canVoteDismiss && <button onClick={onVote} className="font-semibold text-emerald-300 shrink-0">Agree</button>}
+      {hasVotedDismiss && <span className="text-emerald-300/70 shrink-0">You agreed</span>}
+    </div>
+  )
+}
+
+function HeroTask({ view, now, meId, onComplete, onRelease, onVote }: { view: AreaView; now: Date; meId: string; onComplete: () => void; onRelease: () => void; onVote: () => void }) {
   const nav = useNavigate()
-  const { area, scheduled, amVolunteer, isMyTurn, volunteer, activatedBy } = view
+  const { area, scheduled, amVolunteer, isMyTurn, volunteer, activatedBy, canVoteDismiss, dismissVoters } = view
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
@@ -118,19 +135,18 @@ function HeroTask({ view, now, onComplete, onRelease, onDismiss }: { view: AreaV
           </div>
         </button>
         <Button variant="hero" size="lg" className="w-full mt-4" onClick={onComplete}>✓ Mark as done</Button>
-        <div className="flex justify-between mt-2">
-          {amVolunteer && !isMyTurn ? (
-            <Button variant="ghost" size="sm" onClick={onRelease}>Cancel volunteer</Button>
-          ) : (
-            <Button variant="ghost" size="sm" onClick={onDismiss}>Looks fine, not needed</Button>
-          )}
-        </div>
+        {(amVolunteer && !isMyTurn) ? (
+          <div className="flex justify-between mt-2"><Button variant="ghost" size="sm" onClick={onRelease}>Cancel volunteer</Button></div>
+        ) : canVoteDismiss && dismissVoters.length === 0 ? (
+          <div className="flex justify-between mt-2"><Button variant="ghost" size="sm" onClick={onVote}>Looks fine, not needed</Button></div>
+        ) : null}
+        <VoteLine view={view} meId={meId} onVote={onVote} />
       </div>
     </motion.div>
   )
 }
 
-function OpenTask({ view, now, onVolunteer }: { view: AreaView; now: Date; onVolunteer: () => void }) {
+function OpenTask({ view, now, meId, onVolunteer, onVote }: { view: AreaView; now: Date; meId: string; onVolunteer: () => void; onVote: () => void }) {
   const nav = useNavigate()
   const { area, scheduled, volunteer, canVolunteer, graceEndsAt, volunteeringEnabled } = view
   return (
@@ -151,6 +167,7 @@ function OpenTask({ view, now, onVolunteer }: { view: AreaView; now: Date; onVol
           <p className="text-xs text-slate-500 mt-3 px-1">Volunteering opens {timeUntil(graceEndsAt, now)} if {scheduled?.name ?? 'they'} hasn't done it.</p>
         ) : null
       )}
+      <VoteLine view={view} meId={meId} onVote={onVote} />
     </Card>
   )
 }

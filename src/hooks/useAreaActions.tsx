@@ -1,13 +1,13 @@
 import { useCallback, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { claimVolunteer, completeCleaning, dismissActivation, markNeedsCleaning, releaseVolunteer } from '@/lib/api'
+import { claimVolunteer, completeCleaning, dismissActivation, markNeedsCleaning, releaseVolunteer, retractDismissVote, voteDismiss } from '@/lib/api'
 import { friendlyError } from '@/lib/errors'
 import { timeAgo } from '@/lib/format'
-import type { AreaView } from '@/lib/status'
+import { voterNames, type AreaView } from '@/lib/status'
 import { Button, Sheet, useToast } from '@/components/ui'
 import { useCelebration } from '@/components/Celebration'
 
-export type ActionKind = 'mark' | 'complete' | 'volunteer' | 'release' | 'dismiss'
+export type ActionKind = 'mark' | 'complete' | 'volunteer' | 'release' | 'dismiss' | 'vote_dismiss' | 'unvote_dismiss'
 
 interface Pending { kind: ActionKind; view: AreaView }
 
@@ -45,7 +45,14 @@ export function useAreaActions(now: Date) {
         toast.show(`Responsibility returned to ${view.scheduled?.name ?? 'the scheduled person'}.`)
       } else if (kind === 'dismiss') {
         await dismissActivation(id)
-        toast.show(`${view.area.name} marked as not needed.`)
+        toast.show(`${view.area.name} flag cleared.`)
+      } else if (kind === 'vote_dismiss') {
+        const r = await voteDismiss(id)
+        if (r.dismissed) toast.show(`${view.area.name} marked as not needed.`, 'success')
+        else toast.show(`Noted — ${r.votes} of ${r.needed} needed to clear the ${view.area.name}.`)
+      } else if (kind === 'unvote_dismiss') {
+        await retractDismissVote(id)
+        toast.show('Your vote was withdrawn.')
       }
       setPending(null)
     } catch (e) {
@@ -56,17 +63,15 @@ export function useAreaActions(now: Date) {
     }
   }
 
+  const kind = pending?.kind
+  const variant = kind === 'complete' ? 'hero' : kind === 'dismiss' || kind === 'release' || kind === 'unvote_dismiss' ? 'danger' : 'primary'
+
   const sheet = (
     <Sheet open={pending !== null} onClose={close} title={pending ? TITLES[pending.kind](pending.view) : undefined}>
       {pending && <Body p={pending} now={now} />}
       <div className="flex gap-3 mt-5">
         <Button variant="secondary" className="flex-1" onClick={close} disabled={busy}>Cancel</Button>
-        <Button
-          variant={pending?.kind === 'complete' ? 'hero' : pending?.kind === 'dismiss' || pending?.kind === 'release' ? 'danger' : 'primary'}
-          className="flex-1"
-          onClick={run}
-          loading={busy}
-        >
+        <Button variant={variant} className="flex-1" onClick={run} loading={busy}>
           {pending ? CONFIRM[pending.kind] : ''}
         </Button>
       </div>
@@ -81,7 +86,9 @@ const TITLES: Record<ActionKind, (v: AreaView) => ReactNode> = {
   complete: (v) => `Mark ${v.area.name} as cleaned?`,
   volunteer: (v) => `Volunteer to clean the ${v.area.name}?`,
   release: () => 'Cancel your volunteer claim?',
-  dismiss: (v) => `${v.area.name} looks fine?`,
+  dismiss: (v) => `Clear the flag on the ${v.area.name}?`,
+  vote_dismiss: (v) => `${v.area.name} looks fine?`,
+  unvote_dismiss: () => 'Withdraw your vote?',
 }
 
 const CONFIRM: Record<ActionKind, string> = {
@@ -89,7 +96,9 @@ const CONFIRM: Record<ActionKind, string> = {
   complete: 'Complete',
   volunteer: "I'll do it",
   release: 'Cancel claim',
-  dismiss: 'Not needed',
+  dismiss: 'Clear flag',
+  vote_dismiss: 'Yes, looks fine',
+  unvote_dismiss: 'Withdraw',
 }
 
 function Body({ p, now }: { p: Pending; now: Date }) {
@@ -133,9 +142,30 @@ function Body({ p, now }: { p: Pending; now: Date }) {
   if (kind === 'release') {
     return <p className="text-slate-300">Responsibility for the {a.name} goes back to <b className="text-slate-100">{view.scheduled?.name ?? 'the scheduled person'}</b>.</p>
   }
+  if (kind === 'vote_dismiss') {
+    const votes = view.dismissVoters.length
+    const needed = view.dismissVotesNeeded
+    const decisive = votes + 1 >= needed
+    return (
+      <div className="space-y-2 text-slate-300">
+        <p>{lastCleaned}</p>
+        {votes > 0 && (
+          <p><b className="text-slate-100">{voterNames(view.dismissVoters)}</b> {votes === 1 ? 'thinks' : 'think'} it looks fine too.</p>
+        )}
+        {decisive ? (
+          <p>Your vote clears the flag: the {a.name} goes back to normal without advancing the rotation. Nobody earns points.</p>
+        ) : (
+          <p>It takes <b className="text-slate-100">{needed} of the {view.rotationPreview.length}</b> people who clean the {a.name} to agree. Yours will be vote {votes + 1}.</p>
+        )}
+      </div>
+    )
+  }
+  if (kind === 'unvote_dismiss') {
+    return <p className="text-slate-300">Your "looks fine" vote on the {a.name} will be removed.</p>
+  }
   return (
     <p className="text-slate-300">
-      This returns the {a.name} to its normal status without advancing the rotation. Nobody earns points.
+      Admin override: this returns the {a.name} to its normal status without advancing the rotation. Nobody earns points.
     </p>
   )
 }

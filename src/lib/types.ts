@@ -53,6 +53,8 @@ export interface Area {
   sort_order: number
   state: AreaState
   rotation: RotationMember[]
+  /** User ids who have voted "looks fine" on the current flag. */
+  dismiss_votes: string[]
 }
 
 export interface HouseData {
@@ -99,6 +101,7 @@ export interface UserStats {
   monthly_points: number
   total_points: number
   weekly_rank: number | null
+  monthly_rank: number | null
   member_count: number
   current_streak: number
   longest_streak: number
@@ -108,6 +111,15 @@ export interface UserStats {
   achievements: Achievement[]
   week_start: string
   week_end: string
+  month_start: string
+}
+
+export interface DismissVoteResult {
+  area_id: string
+  area_name: string
+  dismissed: boolean
+  votes: number
+  needed: number
 }
 
 export interface Champion {

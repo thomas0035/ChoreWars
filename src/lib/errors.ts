@@ -21,7 +21,10 @@ const COPY: Record<string, string> = {
   unknown_setting: 'Unknown setting.',
   completion_not_found: 'That completion no longer exists.',
   not_latest_completion: 'Only the most recent completion of an area can be undone.',
-  area_active: 'This area is currently flagged. Use "Looks fine" to clear the flag first, then undo.',
+  area_active: 'This area is currently flagged. Use "Clear flag" first, then undo.',
+  not_in_area_rotation: "Only people in this area's rotation can vote on it.",
+  dismiss_vote_not_started: 'Only the person whose turn it is can start a "looks fine" vote.',
+  no_vote: "You haven't voted on this one.",
   invalid_timezone: "That isn't a valid IANA timezone (e.g. Europe/London).",
   invalid_value: 'That value is not allowed.',
 }
