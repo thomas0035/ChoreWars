@@ -69,28 +69,37 @@ export function greeting(now: Date = new Date()): string {
   return 'Good night'
 }
 
+// {name} is replaced with the person's first name. {tod} with the time-of-day greeting.
 const GREETINGS = [
-  'Welcome back',
-  'Good to see you',
-  'Hey there',
-  'Hello again',
-  'Nice to see you',
-  'Glad you’re here',
-  'Back again?',
-  'Ready when you are',
-  'How’s the house looking?',
-  'What needs doing today?',
-  'Let’s keep the place sparkling',
-  'Another day, another tidy home',
-  'The house missed you',
-  'Let’s see how things stand',
-  'Time for a quick look around',
+  '{tod}, {name}',
+  '{tod}, {name}',
+  'Welcome back, {name}',
+  'Good to see you, {name}',
+  'Hey {name}, good to have you back',
+  'Hello again, {name}',
+  'Nice to see you, {name}',
+  'Glad you’re here, {name}',
+  'Back at it, {name}?',
+  'Ready when you are, {name}',
+  'How’s it going, {name}?',
+  'What’s on your mind, {name}?',
+  'How’s the house looking, {name}?',
+  'What needs doing today, {name}?',
+  'Let’s keep the place sparkling, {name}',
+  'The house missed you, {name}',
+  'Let’s see how things stand, {name}',
+  'Time for a quick look around, {name}',
+  'Hope your day’s going well, {name}',
+  'Good to have you here, {name}',
+  'Let’s make the place shine, {name}',
+  'You’re here. Nice, {name}',
 ]
 
-/** A different greeting each visit: the time-of-day one plus a pool of generic ones. */
-export function randomGreeting(now: Date = new Date()): string {
-  const pool = [greeting(now), greeting(now), ...GREETINGS] // time-based one weighted a little higher
-  return pool[Math.floor(Math.random() * pool.length)]!
+/** A different greeting each visit, with the person's first name. */
+export function randomGreeting(name: string, now: Date = new Date()): string {
+  const first = name.trim().split(/\s+/)[0] || name
+  const tpl = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]!
+  return tpl.replace('{tod}', greeting(now)).replace('{name}', first)
 }
 
 export function ordinal(n: number): string {

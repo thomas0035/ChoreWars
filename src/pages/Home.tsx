@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
@@ -11,8 +11,9 @@ import { AreaRow } from '@/components/AreaCard'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx } from '@/components/ui'
 
 export function HomePage() {
-  const [hello] = useState(() => randomGreeting())
   const { views, now, me, isLoading, error } = useAreaViews()
+  const [hello, setHello] = useState('')
+  useEffect(() => { if (me) setHello(randomGreeting(me.name)) }, [me?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const stats = useQuery({ queryKey: queryKeys.stats(me?.id), queryFn: () => fetchUserStats(), enabled: Boolean(me) })
   const lb = useQuery({ queryKey: queryKeys.leaderboard('month'), queryFn: () => fetchLeaderboard('month'), enabled: Boolean(me) })
   const { request, sheet } = useAreaActions(now)
@@ -28,7 +29,7 @@ export function HomePage() {
   return (
     <div>
       <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight">{hello}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{hello || ' '}</h1>
         <div className="flex justify-center gap-2 mt-3 flex-nowrap">
           <Stat icon="⭐" label="month" value={stats.data ? `${stats.data.monthly_points} pts` : '—'} />
           <Stat icon="🔥" label="streak" value={stats.data ? `${stats.data.current_streak}` : '—'} />
