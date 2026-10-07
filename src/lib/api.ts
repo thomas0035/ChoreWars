@@ -42,7 +42,8 @@ export async function fetchHouse(): Promise<HouseData | null> {
     .sort((a, b) => a.name.localeCompare(b.name))
 
   const votesByArea = new Map<string, string[]>()
-  for (const v of unwrap(votes) as { cleaning_area_id: string; user_id: string }[]) {
+  // Tolerate a database that has not had the dismiss_votes migration applied yet: no votes, nothing else breaks.
+  for (const v of (votes.error ? [] : votes.data ?? []) as { cleaning_area_id: string; user_id: string }[]) {
     votesByArea.set(v.cleaning_area_id, [...(votesByArea.get(v.cleaning_area_id) ?? []), v.user_id])
   }
 
