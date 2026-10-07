@@ -85,6 +85,11 @@ Open the Vercel URL on a phone and "Add to Home Screen" — it installs as a PWA
 | Points ledger, weekly/monthly/all-time derived | `user_points_ledger` + `get_leaderboard(period)`, `get_user_stats()` sum over the house-week/month window |
 | Week boundary in house timezone | `house_week_start()` reads `house_settings.timezone` and `week_start_day` |
 | Weekly champion snapshot | `award_weekly_champions()` — idempotent; called lazily by the leaderboard RPC and hourly by pg_cron when available |
+| Monthly results: champion → Skip Pass + achievement, lowest scorer → forfeit | `award_monthly_results()` — same idempotent/lazy pattern; `monthly_results`, `skip_passes`, `get_monthly_results()`, `mark_forfeit_done()` |
+| Rescue penalty (scheduled person loses `rescue_penalty_points`, default 5) | negative row in `user_points_ledger` written by `complete_cleaning()`; undone with the completion |
+| Skip Pass: turn moves on, area stays flagged, no points/penalty | `use_skip_pass()` |
+| "Looks fine" needs half the rotation to agree | `dismiss_votes` + `vote_dismiss()`; admins override with `dismiss_activation()` |
+| Away members skipped everywhere, no penalty, no forfeit | `house_members.away`, `admin_set_member_away()`, `next_rotation_user()` skips them |
 | Streak: per-user, global, only broken by a rescue | inside `complete_cleaning()` (`user_streaks`) |
 | Achievements evaluated in the same transaction | `evaluate_achievements()` called from `complete_cleaning()` |
 | RLS: members read, nobody writes directly | `20260913000003_rls_realtime.sql` |

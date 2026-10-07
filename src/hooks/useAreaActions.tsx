@@ -1,13 +1,13 @@
 import { useCallback, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { claimVolunteer, completeCleaning, dismissActivation, markNeedsCleaning, releaseVolunteer, retractDismissVote, voteDismiss } from '@/lib/api'
+import { claimVolunteer, completeCleaning, dismissActivation, markNeedsCleaning, releaseVolunteer, retractDismissVote, spendSkipPass, voteDismiss } from '@/lib/api'
 import { friendlyError } from '@/lib/errors'
 import { timeAgo } from '@/lib/format'
 import { voterNames, type AreaView } from '@/lib/status'
 import { Button, Sheet, useToast } from '@/components/ui'
 import { useCelebration } from '@/components/Celebration'
 
-export type ActionKind = 'mark' | 'complete' | 'volunteer' | 'release' | 'dismiss' | 'vote_dismiss' | 'unvote_dismiss'
+export type ActionKind = 'mark' | 'complete' | 'volunteer' | 'release' | 'dismiss' | 'vote_dismiss' | 'unvote_dismiss' | 'skip'
 
 interface Pending { kind: ActionKind; view: AreaView }
 
@@ -53,6 +53,9 @@ export function useAreaActions(now: Date) {
       } else if (kind === 'unvote_dismiss') {
         await retractDismissVote(id)
         toast.show('Your vote was withdrawn.')
+      } else if (kind === 'skip') {
+        const r = await spendSkipPass(id)
+        toast.show(`🎟️ Skipped. ${r.next_user_name} is up for the ${r.area_name}.`, 'success')
       }
       setPending(null)
     } catch (e) {
@@ -64,7 +67,7 @@ export function useAreaActions(now: Date) {
   }
 
   const kind = pending?.kind
-  const variant = kind === 'complete' ? 'hero' : kind === 'dismiss' || kind === 'release' || kind === 'unvote_dismiss' ? 'danger' : 'primary'
+  const variant = kind === 'complete' ? 'hero' : kind === 'dismiss' || kind === 'release' || kind === 'unvote_dismiss' ? 'danger' : kind === 'skip' ? 'secondary' : 'primary'
 
   const sheet = (
     <Sheet open={pending !== null} onClose={close} title={pending ? TITLES[pending.kind](pending.view) : undefined}>
@@ -89,6 +92,7 @@ const TITLES: Record<ActionKind, (v: AreaView) => ReactNode> = {
   dismiss: (v) => `Clear the flag on the ${v.area.name}?`,
   vote_dismiss: (v) => `${v.area.name} looks fine?`,
   unvote_dismiss: () => 'Withdraw your vote?',
+  skip: (v) => `Use a Skip Pass on the ${v.area.name}?`,
 }
 
 const CONFIRM: Record<ActionKind, string> = {
@@ -99,6 +103,7 @@ const CONFIRM: Record<ActionKind, string> = {
   dismiss: 'Clear flag',
   vote_dismiss: 'Yes, looks fine',
   unvote_dismiss: 'Withdraw',
+  skip: 'Skip my turn',
 }
 
 function Body({ p, now }: { p: Pending; now: Date }) {
@@ -162,6 +167,16 @@ function Body({ p, now }: { p: Pending; now: Date }) {
   }
   if (kind === 'unvote_dismiss') {
     return <p className="text-slate-300">Your "looks fine" vote on the {a.name} will be removed.</p>
+  }
+  if (kind === 'skip') {
+    const to = view.rotationPreview.slice(1).find((m) => !m.away)
+    return (
+      <div className="space-y-2 text-slate-300">
+        <p>Your turn passes to <b className="text-slate-100">{to?.name ?? 'the next person'}</b> and the {a.name} stays flagged.</p>
+        <p className="text-sm">No points for you, but no penalty either. Your streak is untouched.</p>
+        <p className="text-xs text-slate-500">🎟️ The pass is used up. Win another month to earn a new one.</p>
+      </div>
+    )
   }
   return (
     <p className="text-slate-300">

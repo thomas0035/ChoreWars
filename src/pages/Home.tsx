@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
-import { useAreaViews, queryKeys } from '@/hooks/useHouse'
+import { useAreaViews, useReigningChampion, queryKeys } from '@/hooks/useHouse'
 import { useAreaActions } from '@/hooks/useAreaActions'
 import { fetchLeaderboard, fetchUserStats } from '@/lib/api'
 import { randomGreeting, timeAgo, timeUntil } from '@/lib/format'
@@ -17,6 +17,7 @@ export function HomePage() {
   const stats = useQuery({ queryKey: queryKeys.stats(me?.id), queryFn: () => fetchUserStats(), enabled: Boolean(me) })
   const lb = useQuery({ queryKey: queryKeys.leaderboard('month'), queryFn: () => fetchLeaderboard('month'), enabled: Boolean(me) })
   const { request, sheet } = useAreaActions(now)
+  const champ = useReigningChampion()
 
   if (isLoading) return <PageLoading />
   if (error) return <ErrorBox error={error} />
@@ -46,7 +47,7 @@ export function HomePage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {mine.map((v) => <HeroTask key={v.area.id} view={v} now={now} meId={me.id} onComplete={() => request('complete', v)} onRelease={() => request('release', v)} onVote={() => request('vote_dismiss', v)} />)}
+          {mine.map((v) => <HeroTask key={v.area.id} view={v} now={now} meId={me.id} skipPasses={stats.data?.skip_passes ?? 0} onComplete={() => request('complete', v)} onRelease={() => request('release', v)} onVote={() => request('vote_dismiss', v)} onSkip={() => request('skip', v)} />)}
         </div>
       )}
 
@@ -71,7 +72,7 @@ export function HomePage() {
         {top3.map((r) => (
           <div key={r.user_id} className={cx('flex items-center gap-3 py-3', r.user_id === me.id && 'text-emerald-200')}>
             <span className="w-7 text-xl text-center">{['🥇', '🥈', '🥉'][r.rank - 1] ?? `${r.rank}.`}</span>
-            <Avatar name={r.name} url={r.avatar_url} size="sm" />
+            <Avatar name={r.name} url={r.avatar_url} size="sm" crown={r.user_id === champ} />
             <span className="font-semibold flex-1 truncate">{r.name}{r.user_id === me.id && <span className="text-slate-500 font-normal"> (you)</span>}</span>
             <span className="font-bold tabular-nums">{r.points}</span>
           </div>
@@ -109,9 +110,10 @@ function VoteLine({ view, meId, onVote }: { view: AreaView; meId: string; onVote
   )
 }
 
-function HeroTask({ view, now, meId, onComplete, onRelease, onVote }: { view: AreaView; now: Date; meId: string; onComplete: () => void; onRelease: () => void; onVote: () => void }) {
+function HeroTask({ view, now, meId, skipPasses, onComplete, onRelease, onVote, onSkip }: { view: AreaView; now: Date; meId: string; skipPasses: number; onComplete: () => void; onRelease: () => void; onVote: () => void; onSkip: () => void }) {
   const nav = useNavigate()
   const { area, scheduled, amVolunteer, isMyTurn, volunteer, activatedBy, canVoteDismiss, dismissVoters } = view
+  const canSkip = isMyTurn && area.state.activation_state === 'active' && skipPasses > 0
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
@@ -136,11 +138,14 @@ function HeroTask({ view, now, meId, onComplete, onRelease, onVote }: { view: Ar
           </div>
         </button>
         <Button variant="hero" size="lg" className="w-full mt-4" onClick={onComplete}>✓ Mark as done</Button>
-        {(amVolunteer && !isMyTurn) ? (
-          <div className="flex justify-between mt-2"><Button variant="ghost" size="sm" onClick={onRelease}>Cancel volunteer</Button></div>
-        ) : canVoteDismiss && dismissVoters.length === 0 ? (
-          <div className="flex justify-between mt-2"><Button variant="ghost" size="sm" onClick={onVote}>Looks fine, not needed</Button></div>
-        ) : null}
+        <div className="flex justify-between gap-2 mt-2">
+          {amVolunteer && !isMyTurn
+            ? <Button variant="ghost" size="sm" onClick={onRelease}>Cancel volunteer</Button>
+            : canVoteDismiss && dismissVoters.length === 0
+              ? <Button variant="ghost" size="sm" onClick={onVote}>Looks fine, not needed</Button>
+              : <span />}
+          {canSkip && <Button variant="ghost" size="sm" className="text-amber-200" onClick={onSkip}>🎟️ Use a Skip Pass</Button>}
+        </div>
         <VoteLine view={view} meId={meId} onVote={onVote} />
       </div>
     </motion.div>

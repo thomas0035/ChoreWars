@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useAreaViews, queryKeys } from '@/hooks/useHouse'
 import { useAreaActions } from '@/hooks/useAreaActions'
 import { useUndoCompletion } from '@/hooks/useUndoCompletion'
-import { fetchHistory } from '@/lib/api'
+import { fetchHistory, fetchUserStats } from '@/lib/api'
 import { hoursHuman, intervalRange, timeAgo, timeUntil } from '@/lib/format'
 import { STATUS_STYLES, voterNames } from '@/lib/status'
 import { StatusPill } from '@/components/StatusPill'
@@ -18,6 +18,7 @@ export function AreaDetailPage() {
   const { request, sheet } = useAreaActions(now)
   const undo = useUndoCompletion()
   const history = useQuery({ queryKey: queryKeys.history({ areaId: id, limit: 8 }), queryFn: () => fetchHistory({ areaId: id, limit: 8 }), enabled: Boolean(id) })
+  const stats = useQuery({ queryKey: queryKeys.stats(me?.id), queryFn: () => fetchUserStats(), enabled: Boolean(me) })
 
   if (isLoading) return <PageLoading />
   if (error) return <ErrorBox error={error} />
@@ -34,6 +35,7 @@ export function AreaDetailPage() {
   const { area, status, isActive, scheduled, volunteer, activatedBy, isMyTurn, amVolunteer, canComplete, canMarkNeeds, cooldownEndsAt, canVolunteer, graceEndsAt, canRelease, canDismiss, rotationPreview, volunteeringEnabled, dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss } = view
   const s = area.state
   const styles = STATUS_STYLES[status.key]
+  const canSkip = isMyTurn && s.activation_state === 'active' && (stats.data?.skip_passes ?? 0) > 0
 
   return (
     <div>
@@ -108,6 +110,7 @@ export function AreaDetailPage() {
           <div className="flex gap-2">
             {canRelease && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('release', view)}>{amVolunteer ? 'Cancel my volunteer claim' : 'Clear volunteer claim'}</Button>}
             {canDismiss && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('dismiss', view)}>Clear flag (admin)</Button>}
+            {canSkip && <Button variant="ghost" size="sm" className="flex-1 text-amber-200" onClick={() => request('skip', view)}>🎟️ Use a Skip Pass</Button>}
           </div>
         </div>
       </div>
@@ -119,13 +122,14 @@ export function AreaDetailPage() {
         ) : (
           <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-1 px-1">
             {rotationPreview.map((m, i) => (
-              <Link key={m.id} to={`/profile/${m.id}`} className="flex flex-col items-center gap-1.5 min-w-[64px]">
+              <Link key={m.id} to={`/profile/${m.id}`} className={cx('flex flex-col items-center gap-1.5 min-w-[64px]', m.away && 'opacity-40')}>
                 <div className={cx('rounded-full p-[2px]', i === 0 ? 'bg-gradient-to-br from-emerald-400 to-sky-400' : 'bg-transparent')}>
                   <Avatar name={m.name} url={m.avatar_url} size="md" className={cx(i === 0 && 'ring-2 ring-card')} />
                 </div>
                 <span className={cx('text-xs truncate max-w-[72px]', i === 0 ? 'font-bold text-emerald-200' : 'text-slate-400')}>
                   {i === 0 ? (m.id === me.id ? 'You' : m.name) : m.name}
                 </span>
+                {m.away && <span className="text-[10px] text-amber-200 -mt-1">✈️ away</span>}
               </Link>
             ))}
           </div>

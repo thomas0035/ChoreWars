@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type {
-  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, Member, RotationMember, UserStats,
+  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, Member, MonthlyResult, RotationMember, SkipPassResult, UserStats,
 } from './types'
 
 function unwrap<T>(res: { data: T | null; error: { message: string; details?: string } | null }): T {
@@ -19,7 +19,7 @@ function one<T>(v: T | T[] | null | undefined): T | undefined {
 export async function fetchHouse(): Promise<HouseData | null> {
   const [houses, members, areas, settings, votes] = await Promise.all([
     supabase.from('houses').select('id, name').limit(1),
-    supabase.from('house_members').select('user_id, role, joined_at, profile:profiles(id, name, avatar_url)'),
+    supabase.from('house_members').select('user_id, role, joined_at, away, profile:profiles(id, name, avatar_url)'),
     supabase
       .from('cleaning_areas')
       .select('*, state:cleaning_area_state(*), rotation:cleaning_rotation_members(user_id, position)')
@@ -32,11 +32,11 @@ export async function fetchHouse(): Promise<HouseData | null> {
   const house = unwrap(houses)[0]
   if (!house) return null
 
-  type RawMember = { user_id: string; role: HouseRole; joined_at: string; profile: { id: string; name: string; avatar_url: string | null } | { id: string; name: string; avatar_url: string | null }[] | null }
+  type RawMember = { user_id: string; role: HouseRole; joined_at: string; away?: boolean | null; profile: { id: string; name: string; avatar_url: string | null } | { id: string; name: string; avatar_url: string | null }[] | null }
   const memberRows: Member[] = (unwrap(members) as RawMember[])
     .map((m) => {
       const p = one(m.profile)
-      return p ? { id: p.id, name: p.name, avatar_url: p.avatar_url, role: m.role, joined_at: m.joined_at } : null
+      return p ? { id: p.id, name: p.name, avatar_url: p.avatar_url, role: m.role, joined_at: m.joined_at, away: m.away ?? false } : null
     })
     .filter((m): m is Member => m !== null)
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -72,6 +72,11 @@ export async function fetchUserStats(userId?: string): Promise<UserStats> {
 
 export async function fetchLastWeekChampion(): Promise<Champion | null> {
   return (unwrap(await supabase.rpc('get_last_week_champion')) as Champion | null) ?? null
+}
+
+/** Finished months, newest first. The first row is "last month". */
+export async function fetchMonthlyResults(limit = 12): Promise<MonthlyResult[]> {
+  return unwrap(await supabase.rpc('get_monthly_results', { p_limit: limit })) as MonthlyResult[]
 }
 
 export interface HistoryFilters {
@@ -136,6 +141,14 @@ export async function releaseVolunteer(areaId: string) {
 export async function completeCleaning(areaId: string): Promise<CompletionResult> {
   return unwrap(await supabase.rpc('complete_cleaning', { p_area_id: areaId })) as CompletionResult
 }
+/** Spend a Skip Pass on an area where it's my turn: the turn moves on, the area stays flagged. */
+export async function spendSkipPass(areaId: string): Promise<SkipPassResult> {
+  return unwrap(await supabase.rpc('use_skip_pass', { p_area_id: areaId })) as SkipPassResult
+}
+/** Loser or admin ticks a month's forfeit off (or back on). */
+export async function markForfeitDone(resultId: string, done = true) {
+  return unwrap(await supabase.rpc('mark_forfeit_done', { p_result_id: resultId, p_done: done }))
+}
 
 // ---------------------------------------------------------------------------
 // Admin
@@ -174,6 +187,9 @@ export async function adminResetHouse(mode: 'scores' | 'everything') {
 }
 export async function adminSetMemberRole(userId: string, role: HouseRole) {
   return unwrap(await supabase.rpc('admin_set_member_role', { p_user_id: userId, p_role: role }))
+}
+export async function adminSetMemberAway(userId: string, away: boolean) {
+  return unwrap(await supabase.rpc('admin_set_member_away', { p_user_id: userId, p_away: away }))
 }
 export async function adminRenameMember(userId: string, name: string) {
   return unwrap(await supabase.rpc('admin_rename_member', { p_user_id: userId, p_name: name }))

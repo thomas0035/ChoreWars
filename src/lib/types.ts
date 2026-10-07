@@ -11,6 +11,8 @@ export interface Profile {
 export interface Member extends Profile {
   role: HouseRole
   joined_at: string
+  /** Away members are skipped in every rotation, take no penalty and are excluded from the forfeit. */
+  away: boolean
 }
 
 export interface House {
@@ -108,10 +110,39 @@ export interface UserStats {
   normal_completions: number
   rescues: number
   weekly_wins: number
+  monthly_wins: number
+  /** Unused Skip Passes. */
+  skip_passes: number
+  /** Points lost to rescue penalties this month (positive number). */
+  penalty_points: number
   achievements: Achievement[]
   week_start: string
   week_end: string
   month_start: string
+}
+
+export interface MonthlyResult {
+  id: string
+  month_start: string
+  champion_user_id: string | null
+  champion_name: string | null
+  champion_avatar_url: string | null
+  champion_points: number
+  loser_user_id: string | null
+  loser_name: string | null
+  loser_avatar_url: string | null
+  loser_points: number | null
+  forfeit: string | null
+  forfeit_done_at: string | null
+  forfeit_done_by_name: string | null
+}
+
+export interface SkipPassResult {
+  area_id: string
+  area_name: string
+  next_user_id: string
+  next_user_name: string
+  passes_left: number
 }
 
 export interface DismissVoteResult {
@@ -138,6 +169,8 @@ export interface CompletionResult {
   area_icon: string
   points: number
   breakdown: { base: number; early_bonus: number; streak_bonus: number }
+  /** Points the scheduled person lost (rescues only; 0 otherwise). */
+  penalty: number
   streak: number
   scheduled_user_id: string | null
   scheduled_user_name: string | null

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { useHouse, queryKeys } from '@/hooks/useHouse'
+import { useHouse, useReigningChampion, queryKeys } from '@/hooks/useHouse'
 import { fetchUserStats, updateMyName, updateMyPassword } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -22,6 +22,7 @@ export function ProfilePage() {
   const isSelf = Boolean(me && targetId === me.id)
 
   const stats = useQuery({ queryKey: queryKeys.stats(targetId), queryFn: () => fetchUserStats(targetId), enabled: Boolean(targetId) })
+  const champ = useReigningChampion()
   const allAchievements = useQuery({
     queryKey: ['achievements'],
     queryFn: async () => {
@@ -44,11 +45,12 @@ export function ProfilePage() {
   return (
     <div>
       <div className="flex items-center gap-4">
-        <Avatar name={person.name} url={person.avatar_url} size="xl" />
+        <Avatar name={person.name} url={person.avatar_url} size="xl" crown={person.id === champ} />
         <div className="min-w-0 flex-1">
           <h1 className="text-3xl font-extrabold tracking-tight truncate">{person.name}</h1>
           <p className="text-slate-400 text-sm">
             {person.role === 'admin' ? 'Admin' : 'Member'}
+            {person.away && <span className="text-amber-200"> · ✈️ Away</span>}
             {s?.monthly_rank && <> · 🏆 Rank #{s.monthly_rank} this month</>}
           </p>
         </div>
@@ -66,9 +68,12 @@ export function ProfilePage() {
       <Card className="divide-y divide-line py-1">
         <Line label="Normal completions" value={s?.normal_completions} />
         <Line label="Rescues 🦸" value={s?.rescues} />
+        <Line label="Monthly wins 🥇" value={s?.monthly_wins} />
         <Line label="Weekly wins 👑" value={s?.weekly_wins} />
+        <Line label="Skip passes 🎟️" value={s?.skip_passes} />
         <Line label="Longest streak" value={s?.longest_streak} />
         <Line label="This week" value={s ? `${s.weekly_points} pts` : undefined} />
+        <Line label="Penalties this month" value={s ? (s.penalty_points > 0 ? `−${s.penalty_points} pts` : 'none') : undefined} />
       </Card>
 
       <SectionTitle>Achievements</SectionTitle>

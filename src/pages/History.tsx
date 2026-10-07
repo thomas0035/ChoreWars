@@ -87,10 +87,13 @@ function Row({ children }: { children: ReactNode }) {
 }
 
 export function CompletionItem({ c, showArea = true, meId, onUndo }: { c: Completion; showArea?: boolean; meId?: string; onUndo?: () => void }) {
+  const { settings } = useHouse()
   const rescue = c.completion_type === 'volunteer'
   const logged = c.activated_at === null && !rescue // admin-logged, never flagged
   const cleanerName = c.cleaner?.name ?? 'Someone'
   const scheduledName = c.scheduled?.name ?? 'Unassigned'
+  const penalty = Number(settings.rescue_penalty_points ?? '5')
+  const penaltyNote = rescue && c.scheduled && penalty > 0 && c.points_awarded > 0 ? ` · −${penalty} for ${scheduledName}` : ''
   return (
     <div className="flex items-center gap-3 py-3">
       {showArea && <div className="h-10 w-10 rounded-2xl bg-card-2 flex items-center justify-center text-xl shrink-0">{c.area?.icon ?? '🧹'}</div>}
@@ -103,7 +106,7 @@ export function CompletionItem({ c, showArea = true, meId, onUndo }: { c: Comple
           {rescue && ' 🦸'}
         </div>
         <div className="text-xs text-slate-500 truncate">
-          {logged ? 'Logged by admin' : rescue ? <>Volunteer rescue · scheduled: {scheduledName}</> : 'Normal turn'} · {timeLabel(c.completed_at)}
+          {logged ? 'Logged by admin' : rescue ? <>Volunteer rescue · scheduled: {scheduledName}<span className="text-rose-300/80">{penaltyNote}</span></> : 'Normal turn'} · {timeLabel(c.completed_at)}
           {onUndo && (
             <> · <button onClick={onUndo} className="text-rose-300 hover:underline font-semibold">Undo</button></>
           )}

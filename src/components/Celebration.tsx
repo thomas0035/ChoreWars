@@ -72,6 +72,9 @@ function CompletionBody({ r }: { r: CompletionResult }) {
       <div className="mt-5 text-4xl font-black bg-gradient-to-r from-emerald-300 to-sky-300 bg-clip-text text-transparent">
         +{r.points} {rescue ? 'Rescue Points' : 'Points'}
       </div>
+      {rescue && (r.penalty ?? 0) > 0 && (
+        <p className="text-sm text-rose-300 mt-2">{r.scheduled_user_name ?? 'They'} loses {r.penalty} points for being rescued.</p>
+      )}
       {(r.breakdown.early_bonus > 0 || r.breakdown.streak_bonus > 0) && (
         <p className="text-xs text-slate-400 mt-1">
           {r.breakdown.base} base

@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { useHouse } from '@/hooks/useHouse'
 import { format } from 'date-fns'
 import {
-  adminAddMember, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
+  adminAddMember, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberAway, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -331,7 +331,7 @@ function MembersTab() {
             <Avatar name={m.name} url={m.avatar_url} />
             <div className="flex-1 min-w-0">
               <div className="font-semibold truncate">{m.name}{m.id === me?.id && <span className="text-slate-500 font-normal"> (you)</span>}</div>
-              <div className="text-xs text-slate-400">{m.role === 'admin' ? 'Admin' : 'Member'}</div>
+              <div className="text-xs text-slate-400">{m.role === 'admin' ? 'Admin' : 'Member'}{m.away && <span className="text-amber-200"> · ✈️ Away</span>}</div>
             </div>
           </Card>
         ))}
@@ -356,6 +356,19 @@ function MembersTab() {
             }}>
               {selected.role === 'admin' ? 'Remove admin role' : 'Make admin'}
             </Button>
+            <div>
+              <Button variant="secondary" className="w-full" onClick={async () => {
+                const away = !selected.away
+                if (await run(() => adminSetMemberAway(selected.id, away), away ? `${selected.name} is away — skipped in every rotation` : `${selected.name} is back in the rotations`)) setSelected({ ...selected, away })
+              }}>
+                {selected.away ? '✈️ Mark as back' : '✈️ Mark as away'}
+              </Button>
+              <p className="text-xs text-slate-500 mt-1.5 px-1">
+                {selected.away
+                  ? 'Away: skipped in every rotation, no penalties, left out of the monthly forfeit.'
+                  : 'Away members are skipped in every rotation, take no penalties and are left out of the monthly forfeit. Their current turns move to the next person.'}
+              </p>
+            </div>
             {selected.id !== me?.id && (
               !confirmRemove
                 ? <Button variant="danger" className="w-full" onClick={() => setConfirmRemove(true)}>Remove from house</Button>
@@ -415,6 +428,8 @@ function SettingsTab() {
     streak_bonus_3: settings.streak_bonus_3 ?? '3',
     streak_bonus_5: settings.streak_bonus_5 ?? '5',
     streak_bonus_10: settings.streak_bonus_10 ?? '10',
+    rescue_penalty_points: settings.rescue_penalty_points ?? '5',
+    monthly_forfeit: settings.monthly_forfeit ?? 'Buys snacks for the house',
     public_login_directory: settings.public_login_directory ?? 'true',
   }
   const v = (k: string) => form[k] ?? base[k] ?? ''
@@ -462,7 +477,15 @@ function SettingsTab() {
         <Field label="5-streak bonus"><input type="number" inputMode="numeric" min="0" value={v('streak_bonus_5')} onChange={(e) => set('streak_bonus_5', e.target.value)} /></Field>
         <Field label="10-streak bonus"><input type="number" inputMode="numeric" min="0" value={v('streak_bonus_10')} onChange={(e) => set('streak_bonus_10', e.target.value)} /></Field>
       </div>
+      <Field label="Rescue penalty" hint="Points the scheduled person loses when someone else cleans their area. 0 turns it off.">
+        <input type="number" inputMode="numeric" min="0" value={v('rescue_penalty_points')} onChange={(e) => set('rescue_penalty_points', e.target.value)} />
+      </Field>
       <p className="text-xs text-slate-500 px-1">Per-area points (normal / rescue) and grace periods are set on each area.</p>
+
+      <SectionTitle>Month end</SectionTitle>
+      <Field label="Forfeit for the lowest scorer" hint="Shown on the League page under 'Last month' until it's marked done. The winner gets a Skip Pass automatically.">
+        <input value={v('monthly_forfeit')} onChange={(e) => set('monthly_forfeit', e.target.value)} maxLength={120} placeholder="Buys snacks for the house" />
+      </Field>
 
       <SectionTitle>Login</SectionTitle>
       <Card className="py-1">

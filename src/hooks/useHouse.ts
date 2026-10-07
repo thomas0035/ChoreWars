@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchHouse } from '@/lib/api'
+import { fetchHouse, fetchMonthlyResults } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { describeArea, type AreaView } from '@/lib/status'
 import { useAuth } from './useAuth'
@@ -10,6 +10,7 @@ export const queryKeys = {
   leaderboard: (period: string) => ['leaderboard', period] as const,
   stats: (userId: string | undefined) => ['stats', userId ?? 'me'] as const,
   champion: ['champion'] as const,
+  monthly: ['monthly'] as const,
   history: (filters: unknown) => ['history', filters] as const,
 }
 
@@ -68,6 +69,18 @@ export function useHouse() {
   const me = useMemo(() => data?.members.find((m) => m.id === user?.id), [data, user?.id])
   const isAdmin = me?.role === 'admin'
   return { ...query, data, me, isAdmin, members: data?.members ?? [], areas: data?.areas ?? [], settings: data?.settings ?? {} }
+}
+
+/** Finished months, newest first (shared query; the League page shows the full list). */
+export function useMonthlyResults() {
+  const { user } = useAuth()
+  return useQuery({ queryKey: queryKeys.monthly, queryFn: () => fetchMonthlyResults(12), enabled: Boolean(user), staleTime: 60_000 })
+}
+
+/** User id of last month's champion, who wears the crown this month. */
+export function useReigningChampion(): string | null {
+  const q = useMonthlyResults()
+  return q.data?.[0]?.champion_user_id ?? null
 }
 
 export function useAreaViews(): { views: AreaView[]; now: Date; isLoading: boolean; error: unknown; me: ReturnType<typeof useHouse>['me']; isAdmin: boolean; house: ReturnType<typeof useHouse>['data'] } {

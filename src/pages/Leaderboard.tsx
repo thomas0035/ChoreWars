@@ -1,26 +1,32 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { format } from 'date-fns'
-import { useHouse, queryKeys } from '@/hooks/useHouse'
-import { fetchLastWeekChampion, fetchLeaderboard } from '@/lib/api'
-import type { LeaderboardRow } from '@/lib/types'
-import { Avatar, Card, ErrorBox, PageLoading, cx } from '@/components/ui'
+import { useHouse, useMonthlyResults, queryKeys } from '@/hooks/useHouse'
+import { fetchLastWeekChampion, fetchLeaderboard, markForfeitDone } from '@/lib/api'
+import { friendlyError } from '@/lib/errors'
+import type { LeaderboardRow, MonthlyResult } from '@/lib/types'
+import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx, useToast } from '@/components/ui'
 
 type Period = 'week' | 'month' | 'all'
 
 export function LeaderboardPage() {
   const [period, setPeriod] = useState<Period>('month')
-  const { me } = useHouse()
+  const { me, members, isAdmin, settings } = useHouse()
   const lb = useQuery({ queryKey: queryKeys.leaderboard(period), queryFn: () => fetchLeaderboard(period), enabled: Boolean(me) })
   const champ = useQuery({ queryKey: queryKeys.champion, queryFn: fetchLastWeekChampion, enabled: Boolean(me) })
+  const monthly = useMonthlyResults()
 
   const rows = lb.data ?? []
   const mine = rows.find((r) => r.user_id === me?.id)
   const leader = rows[0]
   const podium = rows.slice(0, 3)
   const rest = rows.slice(3)
+  const awayIds = new Set(members.filter((m) => m.away).map((m) => m.id))
+  const lastMonth = monthly.data?.[0]
+  const reigning = lastMonth?.champion_user_id ?? null
+  const penalty = Number(settings.rescue_penalty_points ?? '5')
 
   return (
     <div>
@@ -43,7 +49,9 @@ export function LeaderboardPage() {
       {rows.length > 0 && (
         <>
           <div className="mt-6 grid grid-cols-3 items-end gap-2">
-            {[podium[1], podium[0], podium[2]].map((r, i) => r && <PodiumSpot key={r.user_id} row={r} tall={i === 1} isMe={r.user_id === me?.id} />)}
+            {[podium[1], podium[0], podium[2]].map((r, i) => r && (
+              <PodiumSpot key={r.user_id} row={r} tall={i === 1} isMe={r.user_id === me?.id} crown={r.user_id === reigning} away={awayIds.has(r.user_id)} />
+            ))}
           </div>
 
           {mine && leader && (
@@ -61,10 +69,10 @@ export function LeaderboardPage() {
               {rest.map((r) => (
                 <Link key={r.user_id} to={`/profile/${r.user_id}`} className={cx('flex items-center gap-3 py-3', r.user_id === me?.id && 'text-emerald-200')}>
                   <span className="w-7 text-center font-bold text-slate-500">{r.rank}.</span>
-                  <Avatar name={r.name} url={r.avatar_url} size="sm" />
-                  <span className="font-semibold flex-1 truncate">{r.name}</span>
+                  <Avatar name={r.name} url={r.avatar_url} size="sm" crown={r.user_id === reigning} />
+                  <span className="font-semibold flex-1 truncate">{r.name}{awayIds.has(r.user_id) && <span className="text-xs text-amber-200 font-normal"> · ✈️ away</span>}</span>
                   {r.current_streak > 1 && <span className="text-xs text-orange-300">🔥 {r.current_streak}</span>}
-                  <span className="font-bold tabular-nums">{r.points}</span>
+                  <span className={cx('font-bold tabular-nums', r.points < 0 && 'text-rose-300')}>{r.points}</span>
                 </Link>
               ))}
             </Card>
@@ -72,37 +80,130 @@ export function LeaderboardPage() {
         </>
       )}
 
+      {lastMonth && (
+        <>
+          <SectionTitle>Last month</SectionTitle>
+          <LastMonthCard r={lastMonth} meId={me?.id} isAdmin={isAdmin} />
+        </>
+      )}
+
       {champ.data && (
-        <Card className="mt-6 flex items-center gap-4 bg-gradient-to-br from-amber-300/10 to-transparent border-amber-300/20">
-          <div className="text-4xl">🏆</div>
+        <Card className="mt-3 flex items-center gap-3 py-3 bg-gradient-to-br from-amber-300/10 to-transparent border-amber-300/20">
+          <div className="text-2xl">👑</div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-amber-200">Last week's champion</div>
-            <div className="font-extrabold text-lg truncate">{champ.data.name}</div>
-            <div className="text-sm text-slate-400">{champ.data.points} points · week of {format(new Date(champ.data.week_start), 'd MMM')}</div>
+            <div className="text-[10px] font-bold tracking-[0.18em] uppercase text-amber-200">Last week's champion</div>
+            <div className="font-bold truncate">{champ.data.name} <span className="text-slate-400 font-normal text-sm">· {champ.data.points} pts · week of {format(new Date(champ.data.week_start), 'd MMM')}</span></div>
           </div>
-          <Avatar name={champ.data.name} url={champ.data.avatar_url} size="lg" />
+          <Avatar name={champ.data.name} url={champ.data.avatar_url} size="sm" />
         </Card>
       )}
 
+      {monthly.data && monthly.data.length > 1 && <HallOfFame results={monthly.data} meId={me?.id} />}
+
       <p className="text-xs text-slate-500 mt-6 px-1 leading-relaxed">
-        Monthly points are the main competition — everyone starts fresh each month. A weekly champion is still crowned every week, and all-time points are kept forever.
+        Monthly points are the main competition. The month's winner earns a 🎟️ Skip Pass, the lowest scorer takes the forfeit,
+        and getting rescued costs {penalty} points. A weekly champion is still crowned every week, and all-time points are kept forever.
       </p>
     </div>
   )
 }
 
-function PodiumSpot({ row, tall, isMe }: { row: LeaderboardRow; tall: boolean; isMe: boolean }) {
+function LastMonthCard({ r, meId, isAdmin }: { r: MonthlyResult; meId?: string; isAdmin: boolean }) {
+  const qc = useQueryClient()
+  const toast = useToast()
+  const [busy, setBusy] = useState(false)
+  const canTick = Boolean(meId && (meId === r.loser_user_id || isAdmin))
+  const done = Boolean(r.forfeit_done_at)
+
+  const tick = async (value: boolean) => {
+    setBusy(true)
+    try {
+      await markForfeitDone(r.id, value)
+      toast.show(value ? 'Forfeit marked as done.' : 'Forfeit reopened.', 'success')
+      await qc.invalidateQueries({ queryKey: queryKeys.monthly })
+    } catch (e) { toast.show(friendlyError(e), 'error') } finally { setBusy(false) }
+  }
+
+  return (
+    <Card className="bg-gradient-to-br from-amber-300/10 via-transparent to-rose-400/10 border-amber-300/20 py-3">
+      <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-amber-200 mb-2">{format(new Date(r.month_start), 'MMMM yyyy')}</div>
+
+      {r.champion_user_id && (
+        <Link to={`/profile/${r.champion_user_id}`} className="flex items-center gap-3 py-2">
+          <span className="text-2xl w-8 text-center">🥇</span>
+          <Avatar name={r.champion_name ?? '?'} url={r.champion_avatar_url} size="md" crown />
+          <div className="flex-1 min-w-0">
+            <div className={cx('font-extrabold truncate', r.champion_user_id === meId && 'text-emerald-200')}>{r.champion_name}{r.champion_user_id === meId && <span className="text-slate-500 font-normal"> (you)</span>}</div>
+            <div className="text-xs text-slate-400">{r.champion_points} pts · earned a 🎟️ Skip Pass</div>
+          </div>
+        </Link>
+      )}
+
+      {r.loser_user_id && (
+        <div className="border-t border-line mt-1 pt-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl w-8 text-center">🫠</span>
+            <Avatar name={r.loser_name ?? '?'} url={r.loser_avatar_url} size="md" />
+            <div className="flex-1 min-w-0">
+              <div className={cx('font-bold truncate', r.loser_user_id === meId && 'text-emerald-200')}>{r.loser_name}{r.loser_user_id === meId && <span className="text-slate-500 font-normal"> (you)</span>}</div>
+              <div className={cx('text-sm', done ? 'text-slate-500 line-through' : 'text-rose-200')}>{r.forfeit ?? 'Forfeit'}</div>
+            </div>
+            {done
+              ? <span className="text-xs text-emerald-300 font-semibold shrink-0">Done ✓</span>
+              : canTick && <Button variant="secondary" size="sm" loading={busy} onClick={() => tick(true)}>Mark done</Button>}
+          </div>
+          {done && (
+            <p className="text-xs text-slate-500 mt-2 px-1">
+              Marked done{r.forfeit_done_by_name ? ` by ${r.forfeit_done_by_name}` : ''} on {format(new Date(r.forfeit_done_at!), 'd MMM')}.
+              {isAdmin && <> <button onClick={() => tick(false)} disabled={busy} className="text-rose-300 hover:underline font-semibold">Reopen</button></>}
+            </p>
+          )}
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function HallOfFame({ results, meId }: { results: MonthlyResult[]; meId?: string }) {
+  const [open, setOpen] = useState(false)
+  const past = results.slice(1)
+  return (
+    <>
+      <SectionTitle action={<button onClick={() => setOpen((o) => !o)} className="text-xs font-semibold text-emerald-300">{open ? 'Hide' : `Show ${past.length}`}</button>}>Hall of fame</SectionTitle>
+      {open && (
+        <Card className="divide-y divide-line py-1">
+          {past.map((r) => (
+            <div key={r.id} className="flex items-center gap-3 py-2.5 text-sm">
+              <span className="w-16 text-xs text-slate-500 shrink-0">{format(new Date(r.month_start), 'MMM yy')}</span>
+              <span className="flex-1 min-w-0 truncate">
+                🥇 <b className={cx(r.champion_user_id === meId && 'text-emerald-200')}>{r.champion_name ?? '—'}</b>
+                <span className="text-slate-500"> {r.champion_points}</span>
+              </span>
+              {r.loser_name && (
+                <span className="flex-1 min-w-0 truncate text-slate-400">
+                  🫠 {r.loser_name}{r.forfeit_done_at ? ' ✓' : ''}
+                </span>
+              )}
+            </div>
+          ))}
+        </Card>
+      )}
+    </>
+  )
+}
+
+function PodiumSpot({ row, tall, isMe, crown, away }: { row: LeaderboardRow; tall: boolean; isMe: boolean; crown: boolean; away: boolean }) {
   const medal = ['🥇', '🥈', '🥉'][row.rank - 1] ?? `#${row.rank}`
   return (
     <motion.div initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: tall ? 0 : 0.1 }}>
       <Link to={`/profile/${row.user_id}`} className="flex flex-col items-center">
         <div className={cx('rounded-full p-[3px]', tall ? 'bg-gradient-to-br from-amber-300 to-orange-400' : 'bg-card-2')}>
-          <Avatar name={row.name} url={row.avatar_url} size={tall ? 'xl' : 'lg'} className="ring-2 ring-card" />
+          <Avatar name={row.name} url={row.avatar_url} size={tall ? 'xl' : 'lg'} className="ring-2 ring-card" crown={crown} />
         </div>
         <div className="text-2xl -mt-3">{medal}</div>
         <div className={cx('font-bold truncate max-w-full text-center', isMe && 'text-emerald-200')}>{row.name}</div>
-        <div className={cx('font-black tabular-nums', tall ? 'text-2xl' : 'text-lg')}>{row.points}</div>
-        {row.current_streak > 1 && <div className="text-xs text-orange-300">🔥 {row.current_streak} streak</div>}
+        <div className={cx('font-black tabular-nums', tall ? 'text-2xl' : 'text-lg', row.points < 0 && 'text-rose-300')}>{row.points}</div>
+        {away ? <div className="text-xs text-amber-200">✈️ away</div> : row.current_streak > 1 && <div className="text-xs text-orange-300">🔥 {row.current_streak} streak</div>}
         <div className={cx('w-full rounded-t-2xl bg-card border border-line border-b-0 mt-2', tall ? 'h-16' : 'h-8')} />
       </Link>
     </motion.div>

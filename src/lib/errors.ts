@@ -25,6 +25,9 @@ const COPY: Record<string, string> = {
   not_in_area_rotation: "Only people in this area's rotation can vote on it.",
   dismiss_vote_not_started: 'Only the person whose turn it is can start a "looks fine" vote.',
   no_vote: "You haven't voted on this one.",
+  no_skip_pass: "You don't have a Skip Pass. Win a month to earn one.",
+  no_one_to_skip_to: 'Nobody else is available in this rotation to take the turn.',
+  result_not_found: 'That month no longer exists.',
   invalid_timezone: "That isn't a valid IANA timezone (e.g. Europe/London).",
   invalid_value: 'That value is not allowed.',
 }

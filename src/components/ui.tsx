@@ -83,13 +83,22 @@ function hue(name: string): string {
   for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0
   return AVATAR_COLORS[h % AVATAR_COLORS.length]!
 }
-export function Avatar({ name, url, size = 'md', className }: { name: string; url?: string | null; size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'; className?: string }) {
+export function Avatar({ name, url, size = 'md', className, crown }: { name: string; url?: string | null; size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'; className?: string; crown?: boolean }) {
   const dim = { xs: 'h-6 w-6 text-[10px]', sm: 'h-8 w-8 text-xs', md: 'h-10 w-10 text-sm', lg: 'h-14 w-14 text-lg', xl: 'h-20 w-20 text-2xl' }[size]
-  if (url) return <img src={url} alt={name} className={cx('rounded-full object-cover shrink-0', dim, className)} />
+  const img = url
+    ? <img src={url} alt={name} className={cx('rounded-full object-cover shrink-0', dim, className)} />
+    : (
+      <div className={cx('rounded-full bg-gradient-to-br text-slate-950 font-bold flex items-center justify-center shrink-0', hue(name), dim, className)}>
+        {initials(name)}
+      </div>
+    )
+  if (!crown) return img
+  const crownSize = { xs: 'text-[10px] -top-1.5 -right-1', sm: 'text-xs -top-2 -right-1', md: 'text-sm -top-2 -right-1', lg: 'text-lg -top-2.5 -right-1', xl: 'text-2xl -top-3 -right-1' }[size]
   return (
-    <div className={cx('rounded-full bg-gradient-to-br text-slate-950 font-bold flex items-center justify-center shrink-0', hue(name), dim, className)}>
-      {initials(name)}
-    </div>
+    <span className="relative inline-flex shrink-0">
+      {img}
+      <span className={cx('absolute leading-none drop-shadow -rotate-12', crownSize)} title="Reigning monthly champion" aria-label="Reigning monthly champion">👑</span>
+    </span>
   )
 }
 
