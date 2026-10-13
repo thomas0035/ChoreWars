@@ -33,6 +33,7 @@ const COPY: Record<string, string> = {
   round_settled: "That clean belongs to a round that has already been settled, so it can't be undone.",
   invalid_timezone: "That isn't a valid IANA timezone (e.g. Europe/London).",
   invalid_value: 'That value is not allowed.',
+  skip_pass_used: "That round's Skip Pass was already used, so the round can't be discarded.",
   no_push_devices: 'Turn on notifications for this device first.',
 }
 

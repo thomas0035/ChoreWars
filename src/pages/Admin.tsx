@@ -1,14 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
-import { useHouse } from '@/hooks/useHouse'
+import { useHouse, useLeagueRounds } from '@/hooks/useHouse'
 import { format } from 'date-fns'
 import {
-  adminAddMember, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberAway, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
+  adminAddMember, adminDiscardRound, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberAway, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
-import type { Area, Member } from '@/lib/types'
+import type { Area, LeagueRound, Member } from '@/lib/types'
 import { Avatar, Button, Card, Field, PageLoading, SectionTitle, Sheet, Toggle, cx, useToast } from '@/components/ui'
 
 type Tab = 'members' | 'areas' | 'settings'
@@ -511,8 +511,74 @@ function SettingsTab() {
           {dirty.length === 0 ? 'No changes' : `Save ${dirty.length} change${dirty.length === 1 ? '' : 's'}`}
         </Button>
       </div>
+      <DiscardRound />
       <DangerZone />
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Discard a finished league round
+// ---------------------------------------------------------------------------
+function roundLabel(r: LeagueRound) {
+  return r.settle_reason === 'legacy'
+    ? format(new Date(r.started_at), 'MMMM yyyy')
+    : `Round ${r.round_no} (${format(new Date(r.started_at), 'd MMM')} – ${format(new Date(r.ended_at), 'd MMM')})`
+}
+
+function DiscardRound() {
+  const run = useAdminAction()
+  const rounds = useLeagueRounds()
+  const [target, setTarget] = useState<LeagueRound | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const confirm = async () => {
+    if (!target) return
+    setBusy(true)
+    const ok = await run(() => adminDiscardRound(target.id), 'Round discarded')
+    setBusy(false)
+    if (ok) setTarget(null)
+  }
+
+  const list = rounds.data ?? []
+  if (list.length === 0) return null
+
+  return (
+    <>
+      <SectionTitle>Finished rounds</SectionTitle>
+      <Card className="divide-y divide-line py-1">
+        {list.map((r) => (
+          <div key={r.id} className="flex items-center gap-3 py-2.5">
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-sm truncate">{roundLabel(r)}</div>
+              <div className="text-xs text-slate-400 truncate">
+                {r.champion_name ? `🥇 ${r.champion_name}` : 'No winner'}
+                {r.loser_name && ` · forfeit: ${r.loser_name}`}
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" className="text-rose-300" onClick={() => setTarget(r)}>Discard</Button>
+          </div>
+        ))}
+      </Card>
+      <p className="text-xs text-slate-500 px-1 mt-2">
+        Discarding removes a finished round's winner, crown, Skip Pass and forfeit, as if the round never happened. Points and cleaning history stay. The current round is not affected.
+      </p>
+
+      <Sheet open={target !== null} onClose={() => { if (!busy) setTarget(null) }} title="Discard this round?">
+        {target && (
+          <p className="text-sm text-slate-300">
+            <b>{roundLabel(target)}</b> will be removed.
+            {target.champion_name && <> {target.champion_name} loses the win, the crown and the Skip Pass from it.</>}
+            {target.loser_name && <> {target.loser_name} no longer owes the forfeit.</>}
+            {' '}Everyone's points stay as they are. This cannot be undone.
+          </p>
+        )}
+        <div className="flex gap-3 mt-5">
+          <Button variant="secondary" className="flex-1" onClick={() => setTarget(null)} disabled={busy}>Cancel</Button>
+          <Button variant="danger" className="flex-1" onClick={confirm} loading={busy}>Discard round</Button>
+        </div>
+      </Sheet>
+    </>
   )
 }
 

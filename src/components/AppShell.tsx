@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Home, LayoutGrid, Trophy, User, Settings, History } from 'lucide-react'
+import { Home, LayoutGrid, Trophy, User, Settings, History, Info } from 'lucide-react'
 import { useHouse, useRealtimeSync } from '@/hooks/useHouse'
 import { useAuth } from '@/hooks/useAuth'
 import { cx } from './ui'
@@ -27,13 +27,22 @@ export function AppShell() {
             <span className="text-xl">🏠</span>
             <span>{data?.house.name ?? 'ChoreWars'}</span>
           </button>
-          <button
-            onClick={() => nav('/history')}
-            className={cx('p-2 -mr-2 rounded-full text-slate-400 hover:bg-white/5', loc.pathname === '/history' && 'text-emerald-300')}
-            aria-label="History"
-          >
-            <History className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1 -mr-2">
+            <button
+              onClick={() => nav('/guide')}
+              className={cx('p-2 rounded-full text-slate-400 hover:bg-white/5', loc.pathname === '/guide' && 'text-emerald-300')}
+              aria-label="How it works"
+            >
+              <Info className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => nav('/history')}
+              className={cx('p-2 rounded-full text-slate-400 hover:bg-white/5', loc.pathname === '/history' && 'text-emerald-300')}
+              aria-label="History"
+            >
+              <History className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </header>
 

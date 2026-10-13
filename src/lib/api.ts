@@ -187,6 +187,9 @@ export async function adminSetLastCleaned(areaId: string, atIso: string, userId?
 export async function adminUndoCompletion(completionId: string) {
   return unwrap(await supabase.rpc('admin_undo_completion', { p_completion_id: completionId })) as { area_id: string }
 }
+export async function adminDiscardRound(roundId: string) {
+  return unwrap(await supabase.rpc('admin_discard_round', { p_round_id: roundId })) as { round_no: number }
+}
 export async function adminResetHouse(mode: 'scores' | 'everything') {
   return unwrap(await supabase.rpc('admin_reset_house', { p_mode: mode }))
 }

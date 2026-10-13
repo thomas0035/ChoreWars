@@ -11,6 +11,7 @@ import { HomePage } from '@/pages/Home'
 import { AreasPage } from '@/pages/Areas'
 import { AreaDetailPage } from '@/pages/AreaDetail'
 import { HistoryPage } from '@/pages/History'
+import { GuidePage } from '@/pages/Guide'
 import { LeaderboardPage } from '@/pages/Leaderboard'
 import { ProfilePage } from '@/pages/Profile'
 import { AdminPage } from '@/pages/Admin'
@@ -94,6 +95,7 @@ export default function App() {
                   <Route path="areas" element={<AreasPage />} />
                   <Route path="areas/:id" element={<AreaDetailPage />} />
                   <Route path="history" element={<HistoryPage />} />
+                  <Route path="guide" element={<GuidePage />} />
                   <Route path="league" element={<LeaderboardPage />} />
                   <Route path="profile" element={<ProfilePage />} />
                   <Route path="profile/:id" element={<ProfilePage />} />
