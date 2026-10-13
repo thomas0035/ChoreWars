@@ -31,6 +31,8 @@ export interface AreaState {
   activated_by_user_id: string | null
   volunteer_user_id: string | null
   volunteer_claimed_at: string | null
+  /** Set when the current turn was passed on with a Skip Pass: the skipper, whose rotation position resumes afterwards. */
+  skip_from_user_id: string | null
   updated_at: string
 }
 
@@ -87,7 +89,12 @@ export interface LeaderboardRow {
   points: number
   rank: number
   current_streak: number
+  /** Round tab only: own turns this round and the turns everyone needs. Null for week / all time. */
+  own_turns: number | null
+  turns_needed: number | null
 }
+
+export type LeaguePeriod = 'round' | 'week' | 'all'
 
 export interface Achievement {
   id: string
@@ -100,30 +107,39 @@ export interface Achievement {
 export interface UserStats {
   user_id: string
   weekly_points: number
-  monthly_points: number
+  /** Capped score in the open league round. */
+  round_points: number
   total_points: number
   weekly_rank: number | null
-  monthly_rank: number | null
+  round_rank: number | null
+  /** Own turns resolved this round, and how many a round needs. */
+  round_turns: number
+  round_turns_needed: number
+  round_no: number | null
+  round_started_at: string | null
   member_count: number
   current_streak: number
   longest_streak: number
   normal_completions: number
   rescues: number
   weekly_wins: number
-  monthly_wins: number
+  round_wins: number
   /** Unused Skip Passes. */
   skip_passes: number
-  /** Points lost to rescue penalties this month (positive number). */
+  /** Points lost to rescue penalties this round (positive number). */
   penalty_points: number
   achievements: Achievement[]
   week_start: string
   week_end: string
-  month_start: string
 }
 
-export interface MonthlyResult {
+/** A settled league round (the open round is LeagueRoundStatus). */
+export interface LeagueRound {
   id: string
-  month_start: string
+  round_no: number
+  started_at: string
+  ended_at: string
+  settle_reason: 'complete' | 'max_length' | 'legacy'
   champion_user_id: string | null
   champion_name: string | null
   champion_avatar_url: string | null
@@ -137,11 +153,35 @@ export interface MonthlyResult {
   forfeit_done_by_name: string | null
 }
 
+export interface LeagueRoundMember {
+  user_id: string
+  name: string
+  avatar_url: string | null
+  own_turns: number
+  round_points: number
+  /** False for members the round doesn't wait for: away, joined mid-round, or in no rotation. */
+  eligible: boolean
+  away: boolean
+}
+
+export interface LeagueRoundStatus {
+  round_id: string
+  round_no: number
+  started_at: string
+  /** The round settles by this time at the latest. */
+  settles_by: string
+  turns_needed: number
+  max_days: number
+  members: LeagueRoundMember[]
+}
+
 export interface SkipPassResult {
   area_id: string
   area_name: string
   next_user_id: string
   next_user_name: string
+  /** lowest_last_round: went to last round's lowest scorer; rotation: their pick was away or no round has finished yet. */
+  reason: 'lowest_last_round' | 'rotation'
   passes_left: number
 }
 

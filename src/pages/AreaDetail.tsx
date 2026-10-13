@@ -14,7 +14,7 @@ import { CompletionItem } from './History'
 export function AreaDetailPage() {
   const { id } = useParams()
   const nav = useNavigate()
-  const { views, now, isLoading, error, me, isAdmin } = useAreaViews()
+  const { views, now, isLoading, error, me, isAdmin, house } = useAreaViews()
   const { request, sheet } = useAreaActions(now)
   const undo = useUndoCompletion()
   const history = useQuery({ queryKey: queryKeys.history({ areaId: id, limit: 8 }), queryFn: () => fetchHistory({ areaId: id, limit: 8 }), enabled: Boolean(id) })
@@ -35,7 +35,8 @@ export function AreaDetailPage() {
   const { area, status, isActive, scheduled, volunteer, activatedBy, isMyTurn, amVolunteer, canComplete, canMarkNeeds, cooldownEndsAt, canVolunteer, graceEndsAt, canRelease, canDismiss, rotationPreview, volunteeringEnabled, dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss } = view
   const s = area.state
   const styles = STATUS_STYLES[status.key]
-  const canSkip = isMyTurn && s.activation_state === 'active' && (stats.data?.skip_passes ?? 0) > 0
+  const canSkip = isMyTurn && s.activation_state === 'active' && !s.skip_from_user_id && (stats.data?.skip_passes ?? 0) > 0
+  const skippedBy = s.skip_from_user_id ? house?.members.find((m) => m.id === s.skip_from_user_id) : undefined
 
   return (
     <div>
@@ -63,6 +64,9 @@ export function AreaDetailPage() {
         </p>
         {isActive && activatedBy && (
           <p className="text-sm text-slate-500 mt-1">Flagged by {activatedBy.name} {timeAgo(s.activated_at, now)}.</p>
+        )}
+        {skippedBy && (
+          <p className="text-sm text-amber-200/80 mt-1">🎟️ Passed on by {skippedBy.id === me.id ? 'you' : skippedBy.name} with a Skip Pass.</p>
         )}
 
         <div className="grid grid-cols-2 gap-2 mt-5">

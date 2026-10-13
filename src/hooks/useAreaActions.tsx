@@ -55,7 +55,9 @@ export function useAreaActions(now: Date) {
         toast.show('Your vote was withdrawn.')
       } else if (kind === 'skip') {
         const r = await spendSkipPass(id)
-        toast.show(`🎟️ Skipped. ${r.next_user_name} is up for the ${r.area_name}.`, 'success')
+        toast.show(r.reason === 'lowest_last_round'
+          ? `🎟️ Skipped. ${r.next_user_name}, last round's lowest scorer, is up for the ${r.area_name}.`
+          : `🎟️ Skipped. ${r.next_user_name} is up for the ${r.area_name}.`, 'success')
       }
       setPending(null)
     } catch (e) {
@@ -169,12 +171,11 @@ function Body({ p, now }: { p: Pending; now: Date }) {
     return <p className="text-slate-300">Your "looks fine" vote on the {a.name} will be removed.</p>
   }
   if (kind === 'skip') {
-    const to = view.rotationPreview.slice(1).find((m) => !m.away)
     return (
       <div className="space-y-2 text-slate-300">
-        <p>Your turn passes to <b className="text-slate-100">{to?.name ?? 'the next person'}</b> and the {a.name} stays flagged.</p>
-        <p className="text-sm">No points for you, but no penalty either. Your streak is untouched.</p>
-        <p className="text-xs text-slate-500">🎟️ The pass is used up. Win another month to earn a new one.</p>
+        <p>Your turn goes to <b className="text-slate-100">last round's lowest scorer</b>, or to the next person in rotation if they're away. The {a.name} stays flagged.</p>
+        <p className="text-sm">It counts as their turn, not yours. No points for you, but no penalty either, and your streak is untouched.</p>
+        <p className="text-xs text-slate-500">🎟️ The pass is used up. Win another round to earn a new one.</p>
       </div>
     )
   }

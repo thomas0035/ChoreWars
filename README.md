@@ -60,6 +60,25 @@ npm run build        # production build in dist/
 
 Open the Vercel URL on a phone and "Add to Home Screen" — it installs as a PWA.
 
+### Push notifications (optional)
+Migration `0009` queues notifications in Postgres; the `send-push` Edge Function delivers them. One-time setup:
+
+1. Generate VAPID keys: `npx web-push generate-vapid-keys`
+2. Set the function secrets and deploy it:
+   ```bash
+   npx supabase secrets set VAPID_PUBLIC_KEY=<public> VAPID_PRIVATE_KEY=<private> VAPID_SUBJECT=mailto:<you@example.com> PUSH_WEBHOOK_SECRET=<long random string>
+   npx supabase functions deploy send-push
+   ```
+3. Dashboard → SQL Editor, so Postgres can call the function (same random string as above):
+   ```sql
+   select vault.create_secret('https://<ref>.supabase.co', 'chorewars_project_url');
+   select vault.create_secret('<long random string>', 'chorewars_push_secret');
+   ```
+4. Add `VITE_VAPID_PUBLIC_KEY=<public>` to `.env` and to Vercel's environment variables, then redeploy.
+5. Each person: Profile → **Notify me on this device** → **Send a test**. On iPhone this only works from the Home Screen app (iOS 16.4+).
+
+Push needs the built service worker, so test with `npm run build && npm run preview`, not `npm run dev`. Delivery problems show in `notifications.last_error` and the function's logs.
+
 ---
 
 ## 4. Everyday admin tasks
@@ -70,6 +89,7 @@ Open the Vercel URL on a phone and "Add to Home Screen" — it installs as a PWA
 | Change rotation order / who's up | Admin → Areas → tap area → drag order with arrows, tap a number to set current turn |
 | Change intervals, points, grace, cooldown | Admin → Areas → tap area |
 | Timezone / week start / bonuses | Admin → Settings |
+| Turns per round / max round length / forfeit | Admin → Settings → League rounds |
 | Remove an area | Admin → Areas → tap area → Remove (history is kept; it can be restored) |
 
 ---
@@ -82,14 +102,14 @@ Open the Vercel URL on a phone and "Add to Home Screen" — it installs as a PWA
 | Needs Cleaning + 4h reactivation cooldown | `mark_needs_cleaning()` |
 | Atomic volunteer claim after grace period | `claim_volunteer()` — single conditional `UPDATE … WHERE activation_state='active' AND volunteer_user_id IS NULL AND now() >= activated_at + grace RETURNING` |
 | Scheduled person can always complete (even after a claim) | `complete_cleaning()` — scheduled user → `normal`; volunteer → `volunteer`; claim simply cleared |
-| Points ledger, weekly/monthly/all-time derived | `user_points_ledger` + `get_leaderboard(period)`, `get_user_stats()` sum over the house-week/month window |
+| Points ledger, round/weekly/all-time derived | `user_points_ledger` + `get_leaderboard('round'\|'week'\|'all')`, `get_user_stats()`; the round score comes from `league_round_scores()` |
 | Week boundary in house timezone | `house_week_start()` reads `house_settings.timezone` and `week_start_day` |
 | Weekly champion snapshot | `award_weekly_champions()` — idempotent; called lazily by the leaderboard RPC and hourly by pg_cron when available |
-| Monthly results: champion → Skip Pass + achievement, lowest scorer → forfeit | `award_monthly_results()` — same idempotent/lazy pattern; `monthly_results`, `skip_passes`, `get_monthly_results()`, `mark_forfeit_done()` |
+| League rounds: a round ends when every eligible member has had N own turns (default 3) or after the max length (default 45 days). Only your first N turns count for you; rescues always count. Champion → Skip Pass + achievement; lowest scorer among those who had all N turns → forfeit (only if at least two did) | `settle_league_rounds()` — idempotent/lazy like the weekly champion; `league_rounds`, `skip_passes`, `get_league_round()`, `get_league_rounds()`, `mark_forfeit_done()` |
 | Rescue penalty (scheduled person loses `rescue_penalty_points`, default 5) | negative row in `user_points_ledger` written by `complete_cleaning()`; undone with the completion |
-| Skip Pass: turn moves on, area stays flagged, no points/penalty | `use_skip_pass()` |
+| Skip Pass: turn goes to last round's lowest scorer (next in rotation if they're away), counts as their turn, can't be skipped again; rotation then resumes after the skipper | `use_skip_pass()`, `league_skip_target()`, `cleaning_area_state.skip_from_user_id` |
 | "Looks fine" needs half the rotation to agree | `dismiss_votes` + `vote_dismiss()`; admins override with `dismiss_activation()` |
-| Away members skipped everywhere, no penalty, no forfeit | `house_members.away`, `admin_set_member_away()`, `next_rotation_user()` skips them |
+| Away members skipped everywhere, no penalty, round doesn't wait for them, no forfeit | `house_members.away`, `admin_set_member_away()`, `next_rotation_user()` skips them |
 | Streak: per-user, global, only broken by a rescue | inside `complete_cleaning()` (`user_streaks`) |
 | Achievements evaluated in the same transaction | `evaluate_achievements()` called from `complete_cleaning()` |
 | RLS: members read, nobody writes directly | `20260913000003_rls_realtime.sql` |

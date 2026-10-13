@@ -612,11 +612,11 @@ Default leaderboard:
 
 Allow switching between:
 
+* This Round
 * This Week
-* This Month
 * All Time
 
-Weekly points should be the main competition.
+~~Weekly points should be the main competition.~~ **[V4]** League round points are the main competition (see "League rounds" below).
 
 Why?
 
@@ -651,6 +651,15 @@ Potential UI:
 > 92 points
 
 **[V3] Week boundary:** the house has a single configured timezone and a week-start day (default Monday 00:00 in that timezone), stored in `house_settings`. All "this week" calculations use this boundary. This must be decided once at setup rather than left implicit, since it affects leaderboard cutovers and the weekly-champion job.
+
+**[V4] League rounds (replace the monthly league).** Turns only happen when an area is flagged, so a calendar month gives people very different numbers of chances. The league is therefore played in rounds measured in turns, not dates:
+
+* A round ends once every eligible member has had N own turns resolved (`league_turns_per_round`, default 3). An own turn is a real completion of an area where you were the scheduled person, whether you cleaned it or someone rescued it. Eligible means a current member, not away, in at least one active rotation, and in the house when the round started.
+* A round also ends at a maximum length (`league_max_round_days`, default 45), so a quiet house never gets stuck.
+* Round score: only your first N own turns count for you (points, bonuses and rescue penalties). Rescues you do for others always count in full.
+* Champion: highest score above zero. They get a Skip Pass and the League Champion achievement.
+* Forfeit (`league_forfeit`): lowest score among eligible members who had all N turns, and only if at least two people did. Members who joined mid-round or were away are exempt.
+* Skip Pass: hands your current turn to last round's lowest scorer (or the next in rotation if they are away or no round has finished yet). It counts as their own turn, cannot be skipped again, and the rotation resumes after the skipper once it is done.
 
 ---
 

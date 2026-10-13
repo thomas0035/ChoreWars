@@ -25,11 +25,15 @@ const COPY: Record<string, string> = {
   not_in_area_rotation: "Only people in this area's rotation can vote on it.",
   dismiss_vote_not_started: 'Only the person whose turn it is can start a "looks fine" vote.',
   no_vote: "You haven't voted on this one.",
-  no_skip_pass: "You don't have a Skip Pass. Win a month to earn one.",
+  no_skip_pass: "You don't have a Skip Pass. Win a round to earn one.",
+  turn_not_skippable: "This task was passed to you with a Skip Pass, so it can't be skipped again.",
   no_one_to_skip_to: 'Nobody else is available in this rotation to take the turn.',
-  result_not_found: 'That month no longer exists.',
+  result_not_found: 'That round no longer exists.',
+  round_open: "That round hasn't finished yet.",
+  round_settled: "That clean belongs to a round that has already been settled, so it can't be undone.",
   invalid_timezone: "That isn't a valid IANA timezone (e.g. Europe/London).",
   invalid_value: 'That value is not allowed.',
+  no_push_devices: 'Turn on notifications for this device first.',
 }
 
 export function friendlyError(err: unknown): string {

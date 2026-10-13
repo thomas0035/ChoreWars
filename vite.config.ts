@@ -26,6 +26,7 @@ export default defineConfig({
       workbox: {
         navigateFallbackDenylist: [/^\/~/],
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        importScripts: ['push-sw.js'],
       },
     }),
   ],

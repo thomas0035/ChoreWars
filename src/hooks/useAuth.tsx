@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { disablePush, resyncPush } from '@/lib/push'
 
 interface AuthContextValue {
   session: Session | null
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return
       setSession(data.session)
       setLoading(false)
+      if (data.session) resyncPush().catch(() => {})
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s)
@@ -42,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error
     },
     signOut: async () => {
+      // Stop this device getting the signed-out person's notifications.
+      await disablePush().catch(() => {})
       await supabase.auth.signOut()
     },
   }

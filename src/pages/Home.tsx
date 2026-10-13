@@ -15,7 +15,7 @@ export function HomePage() {
   const [hello, setHello] = useState('')
   useEffect(() => { if (me) setHello(randomGreeting(me.name)) }, [me?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const stats = useQuery({ queryKey: queryKeys.stats(me?.id), queryFn: () => fetchUserStats(), enabled: Boolean(me) })
-  const lb = useQuery({ queryKey: queryKeys.leaderboard('month'), queryFn: () => fetchLeaderboard('month'), enabled: Boolean(me) })
+  const lb = useQuery({ queryKey: queryKeys.leaderboard('round'), queryFn: () => fetchLeaderboard('round'), enabled: Boolean(me) })
   const { request, sheet } = useAreaActions(now)
   const champ = useReigningChampion()
 
@@ -32,9 +32,9 @@ export function HomePage() {
       <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-center">
         <h1 className="text-3xl font-extrabold tracking-tight">{hello || ' '}</h1>
         <div className="flex justify-center gap-2 mt-3 flex-nowrap">
-          <Stat icon="⭐" label="month" value={stats.data ? `${stats.data.monthly_points} pts` : '—'} />
+          <Stat icon="⭐" label="round" value={stats.data ? `${stats.data.round_points} pts` : '—'} />
           <Stat icon="🔥" label="streak" value={stats.data ? `${stats.data.current_streak}` : '—'} />
-          <Stat icon="🏆" label="rank" value={stats.data?.monthly_rank ? `#${stats.data.monthly_rank}` : '—'} />
+          <Stat icon="🏆" label="rank" value={stats.data?.round_rank ? `#${stats.data.round_rank}` : '—'} />
         </div>
       </motion.div>
 
@@ -66,9 +66,14 @@ export function HomePage() {
         {views.filter((v) => !v.isActive).length === 0 && <p className="text-sm text-slate-500 px-1">Every area is currently flagged. Busy house!</p>}
       </div>
 
-      <SectionTitle action={<Link to="/league" className="text-xs font-semibold text-emerald-300">Full league</Link>}>This month</SectionTitle>
+      <SectionTitle action={<Link to="/league" className="text-xs font-semibold text-emerald-300">Full league</Link>}>This round</SectionTitle>
+      {stats.data && stats.data.round_no !== null && (
+        <p className="text-xs text-slate-500 -mt-1 mb-2 px-1">
+          Round {stats.data.round_no} · you've had {Math.min(stats.data.round_turns, stats.data.round_turns_needed)} of {stats.data.round_turns_needed} turns
+        </p>
+      )}
       <Card className="divide-y divide-line py-1">
-        {top3.length === 0 && <p className="text-sm text-slate-500 py-3">No points yet this month. First clean takes the lead.</p>}
+        {top3.length === 0 && <p className="text-sm text-slate-500 py-3">No points yet this round. First clean takes the lead.</p>}
         {top3.map((r) => (
           <div key={r.user_id} className={cx('flex items-center gap-3 py-3', r.user_id === me.id && 'text-emerald-200')}>
             <span className="w-7 text-xl text-center">{['🥇', '🥈', '🥉'][r.rank - 1] ?? `${r.rank}.`}</span>
@@ -113,7 +118,7 @@ function VoteLine({ view, meId, onVote }: { view: AreaView; meId: string; onVote
 function HeroTask({ view, now, meId, skipPasses, onComplete, onRelease, onVote, onSkip }: { view: AreaView; now: Date; meId: string; skipPasses: number; onComplete: () => void; onRelease: () => void; onVote: () => void; onSkip: () => void }) {
   const nav = useNavigate()
   const { area, scheduled, amVolunteer, isMyTurn, volunteer, activatedBy, canVoteDismiss, dismissVoters } = view
-  const canSkip = isMyTurn && area.state.activation_state === 'active' && skipPasses > 0
+  const canSkip = isMyTurn && area.state.activation_state === 'active' && !area.state.skip_from_user_id && skipPasses > 0
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}

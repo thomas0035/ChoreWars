@@ -365,8 +365,8 @@ function MembersTab() {
               </Button>
               <p className="text-xs text-slate-500 mt-1.5 px-1">
                 {selected.away
-                  ? 'Away: skipped in every rotation, no penalties, left out of the monthly forfeit.'
-                  : 'Away members are skipped in every rotation, take no penalties and are left out of the monthly forfeit. Their current turns move to the next person.'}
+                  ? "Away: skipped in every rotation, no penalties, and the league round doesn't wait for them or give them the forfeit."
+                  : "Away members are skipped in every rotation, take no penalties, and the league round doesn't wait for them or give them the forfeit. Their current turns move to the next person."}
               </p>
             </div>
             {selected.id !== me?.id && (
@@ -429,7 +429,9 @@ function SettingsTab() {
     streak_bonus_5: settings.streak_bonus_5 ?? '5',
     streak_bonus_10: settings.streak_bonus_10 ?? '10',
     rescue_penalty_points: settings.rescue_penalty_points ?? '5',
-    monthly_forfeit: settings.monthly_forfeit ?? 'Buys snacks for the house',
+    league_turns_per_round: settings.league_turns_per_round ?? '3',
+    league_max_round_days: settings.league_max_round_days ?? '45',
+    league_forfeit: settings.league_forfeit ?? 'Buys snacks for the house',
     public_login_directory: settings.public_login_directory ?? 'true',
   }
   const v = (k: string) => form[k] ?? base[k] ?? ''
@@ -482,9 +484,21 @@ function SettingsTab() {
       </Field>
       <p className="text-xs text-slate-500 px-1">Per-area points (normal / rescue) and grace periods are set on each area.</p>
 
-      <SectionTitle>Month end</SectionTitle>
-      <Field label="Forfeit for the lowest scorer" hint="Shown on the League page under 'Last month' until it's marked done. The winner gets a Skip Pass automatically.">
-        <input value={v('monthly_forfeit')} onChange={(e) => set('monthly_forfeit', e.target.value)} maxLength={120} placeholder="Buys snacks for the house" />
+      <SectionTitle>League rounds</SectionTitle>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Turns per round">
+          <input type="number" inputMode="numeric" min="1" max="20" value={v('league_turns_per_round')} onChange={(e) => set('league_turns_per_round', e.target.value)} />
+        </Field>
+        <Field label="Max round length (days)">
+          <input type="number" inputMode="numeric" min="7" max="365" value={v('league_max_round_days')} onChange={(e) => set('league_max_round_days', e.target.value)} />
+        </Field>
+      </div>
+      <p className="text-xs text-slate-500 px-1 -mt-2">
+        A round ends once every member who isn't away has had this many turns, or at the max length. Only those turns count toward a member's score; rescues always count.
+        Changes apply to the current round straight away, so lowering the turns can end it on the next page load.
+      </p>
+      <Field label="Forfeit for the lowest scorer" hint="Shown on the League page under 'Last round' until it's marked done. Only members who had all their turns can get it. The winner gets a Skip Pass automatically.">
+        <input value={v('league_forfeit')} onChange={(e) => set('league_forfeit', e.target.value)} maxLength={120} placeholder="Buys snacks for the house" />
       </Field>
 
       <SectionTitle>Login</SectionTitle>
@@ -526,7 +540,7 @@ function DangerZone() {
       <Card className="border-rose-400/20 space-y-3">
         <div>
           <div className="font-semibold">Reset scores</div>
-          <p className="text-xs text-slate-400 mt-0.5">Clears all points, streaks, achievements and weekly champions. Cleaning history is kept (shown with no points).</p>
+          <p className="text-xs text-slate-400 mt-0.5">Clears all points, streaks, achievements, weekly champions, league rounds and Skip Passes, and starts round 1. Cleaning history is kept (shown with no points).</p>
           <Button variant="danger" size="sm" className="mt-2" onClick={() => setMode('scores')}>Reset scores</Button>
         </div>
         <div className="border-t border-line pt-3">

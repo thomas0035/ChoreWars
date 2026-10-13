@@ -1,0 +1,107 @@
+CHOREWARS: HOW THE POINTS WORK
+==============================
+
+THE BASICS
+----------
+Each area (Kitchen, Hall, Sink, Bathrooms) has its own rotation of people.
+
+1. When an area looks dirty, anyone can tap "Needs cleaning".
+   Flagging gives no points, it just tells the next person it's their turn.
+2. The person whose turn it is cleans it and taps "Mark as done".
+3. The turn then moves to the next person in that area's rotation.
+
+If the area actually looks fine, the person whose turn it is can start a
+"Looks fine" vote. If half the people on that rotation agree, the flag is
+cleared and nobody gains or loses anything.
+
+
+EARNING POINTS
+--------------
+  Cleaning on your turn ............ +10
+  Rescuing someone else's turn ..... +12
+  Early bonus ...................... +2   (cleaned before the usual gap was up)
+  Streak bonus ..................... +3 on your 3rd clean in a row
+                                     +5 on your 5th
+                                     +10 on your 10th
+
+Your streak counts every turn you do yourself, across all areas.
+It only resets if someone has to rescue one of your turns.
+
+
+RESCUES (VOLUNTEERING)
+----------------------
+If a flagged area hasn't been cleaned within 24 hours, anyone else can
+volunteer to do it.
+
+  - The person who rescues it gets +12.
+  - The person whose turn it was loses 5 points and their streak resets.
+  - Even after someone volunteers, the person whose turn it is can still
+    clean it themselves. Then it counts as a normal clean for them and the
+    volunteer gets nothing.
+
+
+THE LEAGUE: ROUNDS, NOT MONTHS
+------------------------------
+We don't compete by calendar month any more, because in one month someone
+might get 3 turns and someone else none. That isn't fair.
+
+Instead, the league is played in ROUNDS:
+
+  - A round ends once everyone has had 3 turns.
+    A turn counts once the area gets cleaned, by you or by someone who
+    rescued you.
+  - If a round is taking too long, it ends anyway after 45 days.
+
+Only your FIRST 3 TURNS in a round count toward your score. So getting
+more turns than others doesn't give you an advantage.
+
+Rescues you do for other people ALWAYS count, so volunteering is the way
+to climb the table.
+
+
+END OF A ROUND
+--------------
+  WINNER (highest score)
+    Gets a Skip Pass and the League Champion badge, and wears the crown
+    during the next round.
+
+  LOWEST SCORER
+    Does the forfeit the house has agreed on (for example, buying snacks
+    for everyone). They tick it off in the app once it's done.
+
+The forfeit is only given to people who actually had all 3 of their turns.
+If you joined partway through a round or were away, you can't get it.
+If fewer than two people had all their turns before the 45 days ran out,
+there is no forfeit that round.
+
+
+SKIP PASS
+---------
+The round winner gets a Skip Pass. When it's your turn on a flagged area,
+you can use it to pass that task on:
+
+  - The task goes to the person who came LAST in the previous round.
+  - If they're away, it goes to the next person in the rotation instead.
+  - It counts as their turn, not yours. You get no points, but no penalty,
+    and your streak stays safe.
+  - A task that was passed to you with a Skip Pass can't be skipped again.
+  - Once it's cleaned, the rotation carries on as if you had done it.
+
+
+AWAY
+----
+If you're travelling, ask an admin to mark you as away.
+While you're away:
+  - You're skipped in every rotation.
+  - You can't be penalised.
+  - The round doesn't wait for you, and you can't get the forfeit.
+
+
+WEEKLY CHAMPION
+---------------
+Separately, whoever scores the most points each week is crowned Weekly
+Champion. It's just for bragging rights. All-time points are kept forever.
+
+
+Note: the numbers above are the defaults. An admin can change them in the
+app's settings.

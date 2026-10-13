@@ -1,15 +1,16 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { LogOut } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useHouse, useReigningChampion, queryKeys } from '@/hooks/useHouse'
 import { fetchUserStats, updateMyName, updateMyPassword } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
+import { disablePush, enablePush, getPushState, isIosBrowserTab, sendTestNotification, type PushState } from '@/lib/push'
 import type { Achievement } from '@/lib/types'
-import { Avatar, Button, Card, ErrorBox, Field, PageLoading, SectionTitle, Sheet, cx, useToast } from '@/components/ui'
+import { Avatar, Button, Card, ErrorBox, Field, PageLoading, SectionTitle, Sheet, Skeleton, Toggle, cx, useToast } from '@/components/ui'
 
 export function ProfilePage() {
   const { id } = useParams()
@@ -51,7 +52,7 @@ export function ProfilePage() {
           <p className="text-slate-400 text-sm">
             {person.role === 'admin' ? 'Admin' : 'Member'}
             {person.away && <span className="text-amber-200"> · ✈️ Away</span>}
-            {s?.monthly_rank && <> · 🏆 Rank #{s.monthly_rank} this month</>}
+            {s?.round_rank && <> · 🏆 Rank #{s.round_rank} this round</>}
           </p>
         </div>
       </div>
@@ -59,7 +60,7 @@ export function ProfilePage() {
       {stats.error && <div className="mt-4"><ErrorBox error={stats.error} retry={() => stats.refetch()} /></div>}
 
       <div className="grid grid-cols-3 gap-2 mt-5">
-        <Big icon="⭐" value={s?.monthly_points ?? '—'} label="this month" />
+        <Big icon="⭐" value={s?.round_points ?? '—'} label="this round" />
         <Big icon="💎" value={s?.total_points ?? '—'} label="all time" />
         <Big icon="🔥" value={s?.current_streak ?? '—'} label="streak" />
       </div>
@@ -68,12 +69,13 @@ export function ProfilePage() {
       <Card className="divide-y divide-line py-1">
         <Line label="Normal completions" value={s?.normal_completions} />
         <Line label="Rescues 🦸" value={s?.rescues} />
-        <Line label="Monthly wins 🥇" value={s?.monthly_wins} />
+        <Line label="Round wins 🥇" value={s?.round_wins} />
         <Line label="Weekly wins 👑" value={s?.weekly_wins} />
         <Line label="Skip passes 🎟️" value={s?.skip_passes} />
         <Line label="Longest streak" value={s?.longest_streak} />
         <Line label="This week" value={s ? `${s.weekly_points} pts` : undefined} />
-        <Line label="Penalties this month" value={s ? (s.penalty_points > 0 ? `−${s.penalty_points} pts` : 'none') : undefined} />
+        <Line label="Turns this round" value={s ? `${Math.min(s.round_turns, s.round_turns_needed)}/${s.round_turns_needed}` : undefined} />
+        <Line label="Penalties this round" value={s ? (s.penalty_points > 0 ? `−${s.penalty_points} pts` : 'none') : undefined} />
       </Card>
 
       <SectionTitle>Achievements</SectionTitle>
@@ -94,6 +96,9 @@ export function ProfilePage() {
 
       {isSelf && (
         <>
+          <SectionTitle>Notifications</SectionTitle>
+          <NotificationsCard />
+
           <SectionTitle>Account</SectionTitle>
           <div className="space-y-2">
             <Button variant="secondary" className="w-full" onClick={() => setEditOpen(true)}>Change my name</Button>
@@ -119,6 +124,78 @@ export function ProfilePage() {
         </>
       )}
     </div>
+  )
+}
+
+function NotificationsCard() {
+  const toast = useToast()
+  const [state, setState] = useState<PushState | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    getPushState().then(setState, () => setState('unsupported'))
+  }, [])
+
+  const toggle = async (on: boolean) => {
+    setBusy(true)
+    try {
+      if (on) {
+        const next = await enablePush()
+        setState(next)
+        if (next === 'on') toast.show('Notifications on for this device', 'success')
+        else if (next === 'denied') toast.show('Notifications are blocked. Allow them in your browser settings.', 'error')
+      } else {
+        await disablePush()
+        setState('off')
+      }
+    } catch (e) {
+      toast.show(friendlyError(e), 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const test = async () => {
+    setBusy(true)
+    try {
+      await sendTestNotification()
+      toast.show('Test sent. It should arrive in a few seconds.', 'success')
+    } catch (e) {
+      toast.show(friendlyError(e), 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (state === null) return <Skeleton className="h-16 rounded-3xl" />
+
+  if (state === 'unsupported' || state === 'unconfigured') {
+    return (
+      <Card className="flex gap-3 items-start text-sm text-slate-400">
+        <Bell className="h-5 w-5 shrink-0 mt-0.5" />
+        <p>
+          {state === 'unconfigured'
+            ? "Notifications aren't set up for this app yet."
+            : isIosBrowserTab()
+              ? 'On iPhone, add ChoreWars to your Home Screen first (Share → Add to Home Screen), then open it from there to turn on notifications.'
+              : "This browser doesn't support notifications."}
+        </p>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="py-2">
+      <Toggle checked={state === 'on'} onChange={(v) => { if (!busy) void toggle(v) }} label="Notify me on this device" />
+      <p className="text-xs text-slate-500 px-1 pb-2">
+        {state === 'denied'
+          ? 'Blocked in your browser settings. Allow notifications for this site, then come back.'
+          : "When it's your turn, when an area you're on needs attention, and when someone rescues your task."}
+      </p>
+      {state === 'on' && (
+        <Button variant="secondary" size="sm" className="mb-2" onClick={test} loading={busy}>Send a test</Button>
+      )}
+    </Card>
   )
 }
 

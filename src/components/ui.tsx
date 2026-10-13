@@ -97,7 +97,7 @@ export function Avatar({ name, url, size = 'md', className, crown }: { name: str
   return (
     <span className="relative inline-flex shrink-0">
       {img}
-      <span className={cx('absolute leading-none drop-shadow -rotate-12', crownSize)} title="Reigning monthly champion" aria-label="Reigning monthly champion">👑</span>
+      <span className={cx('absolute leading-none drop-shadow -rotate-12', crownSize)} title="Reigning league champion" aria-label="Reigning league champion">👑</span>
     </span>
   )
 }

@@ -93,7 +93,10 @@ begin
     (v_house, 'streak_bonus_3', '3'),
     (v_house, 'streak_bonus_5', '5'),
     (v_house, 'streak_bonus_10', '10'),
-    (v_house, 'public_login_directory', 'true')
+    (v_house, 'public_login_directory', 'true'),
+    (v_house, 'league_turns_per_round', '3'),
+    (v_house, 'league_max_round_days', '45'),
+    (v_house, 'league_forfeit', 'Buys snacks for the house')
   on conflict (house_id, key) do nothing;
 
   -- -------------------------------------------------------------------------

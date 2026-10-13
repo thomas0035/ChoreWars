@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchHouse, fetchMonthlyResults } from '@/lib/api'
+import { fetchHouse, fetchLeagueRound, fetchLeagueRounds } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { describeArea, type AreaView } from '@/lib/status'
 import { useAuth } from './useAuth'
@@ -10,7 +10,8 @@ export const queryKeys = {
   leaderboard: (period: string) => ['leaderboard', period] as const,
   stats: (userId: string | undefined) => ['stats', userId ?? 'me'] as const,
   champion: ['champion'] as const,
-  monthly: ['monthly'] as const,
+  rounds: ['league', 'rounds'] as const,
+  round: ['league', 'round'] as const,
   history: (filters: unknown) => ['history', filters] as const,
 }
 
@@ -71,15 +72,21 @@ export function useHouse() {
   return { ...query, data, me, isAdmin, members: data?.members ?? [], areas: data?.areas ?? [], settings: data?.settings ?? {} }
 }
 
-/** Finished months, newest first (shared query; the League page shows the full list). */
-export function useMonthlyResults() {
+/** Settled rounds, newest first (shared query; the League page shows the full list). */
+export function useLeagueRounds() {
   const { user } = useAuth()
-  return useQuery({ queryKey: queryKeys.monthly, queryFn: () => fetchMonthlyResults(12), enabled: Boolean(user), staleTime: 60_000 })
+  return useQuery({ queryKey: queryKeys.rounds, queryFn: () => fetchLeagueRounds(12), enabled: Boolean(user), staleTime: 60_000 })
 }
 
-/** User id of last month's champion, who wears the crown this month. */
+/** The open round and everyone's turn progress. */
+export function useLeagueRound() {
+  const { user } = useAuth()
+  return useQuery({ queryKey: queryKeys.round, queryFn: fetchLeagueRound, enabled: Boolean(user), staleTime: 30_000 })
+}
+
+/** User id of last round's champion, who wears the crown during this round. */
 export function useReigningChampion(): string | null {
-  const q = useMonthlyResults()
+  const q = useLeagueRounds()
   return q.data?.[0]?.champion_user_id ?? null
 }
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type {
-  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, Member, MonthlyResult, RotationMember, SkipPassResult, UserStats,
+  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus, Member, RotationMember, SkipPassResult, UserStats,
 } from './types'
 
 function unwrap<T>(res: { data: T | null; error: { message: string; details?: string } | null }): T {
@@ -62,7 +62,7 @@ export async function fetchHouse(): Promise<HouseData | null> {
   return { house, settings: settingsMap, members: memberRows, areas: areaRows }
 }
 
-export async function fetchLeaderboard(period: 'week' | 'month' | 'all'): Promise<LeaderboardRow[]> {
+export async function fetchLeaderboard(period: LeaguePeriod): Promise<LeaderboardRow[]> {
   return unwrap(await supabase.rpc('get_leaderboard', { p_period: period })) as LeaderboardRow[]
 }
 
@@ -74,9 +74,14 @@ export async function fetchLastWeekChampion(): Promise<Champion | null> {
   return (unwrap(await supabase.rpc('get_last_week_champion')) as Champion | null) ?? null
 }
 
-/** Finished months, newest first. The first row is "last month". */
-export async function fetchMonthlyResults(limit = 12): Promise<MonthlyResult[]> {
-  return unwrap(await supabase.rpc('get_monthly_results', { p_limit: limit })) as MonthlyResult[]
+/** Settled league rounds, newest first. The first row is "last round". */
+export async function fetchLeagueRounds(limit = 12): Promise<LeagueRound[]> {
+  return unwrap(await supabase.rpc('get_league_rounds', { p_limit: limit })) as LeagueRound[]
+}
+
+/** The open round with everyone's progress, or null before the house's first clean. */
+export async function fetchLeagueRound(): Promise<LeagueRoundStatus | null> {
+  return (unwrap(await supabase.rpc('get_league_round')) as LeagueRoundStatus | null) ?? null
 }
 
 export interface HistoryFilters {
@@ -141,11 +146,11 @@ export async function releaseVolunteer(areaId: string) {
 export async function completeCleaning(areaId: string): Promise<CompletionResult> {
   return unwrap(await supabase.rpc('complete_cleaning', { p_area_id: areaId })) as CompletionResult
 }
-/** Spend a Skip Pass on an area where it's my turn: the turn moves on, the area stays flagged. */
+/** Spend a Skip Pass on an area where it's my turn: the turn goes to last round's lowest scorer (or the next in rotation), the area stays flagged. */
 export async function spendSkipPass(areaId: string): Promise<SkipPassResult> {
   return unwrap(await supabase.rpc('use_skip_pass', { p_area_id: areaId })) as SkipPassResult
 }
-/** Loser or admin ticks a month's forfeit off (or back on). */
+/** Loser or admin ticks a round's forfeit off (or back on). */
 export async function markForfeitDone(resultId: string, done = true) {
   return unwrap(await supabase.rpc('mark_forfeit_done', { p_result_id: resultId, p_done: done }))
 }
