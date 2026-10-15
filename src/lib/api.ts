@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type {
-  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus, Member, RotationMember, SkipPassResult, UserStats,
+  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus, Member, PointAdjustment, RotationMember, SkipPassResult, UserStats,
 } from './types'
 
 function unwrap<T>(res: { data: T | null; error: { message: string; details?: string } | null }): T {
@@ -111,6 +111,26 @@ export async function fetchHistory(f: HistoryFilters = {}): Promise<Completion[]
   return rows.map((r) => ({ ...r, area: one(r.area) ?? null, scheduled: one(r.scheduled) ?? null, cleaner: one(r.cleaner) ?? null }))
 }
 
+/** Admin point adjustments, newest first. Everyone in the house can read them (and the reason). */
+export async function fetchAdjustments(f: { userId?: string; limit?: number } = {}): Promise<PointAdjustment[]> {
+  let q = supabase
+    .from('user_points_ledger')
+    .select('id, user_id, points, note, created_at, created_by, member:profiles!user_points_ledger_user_id_fkey(name), admin:profiles!user_points_ledger_created_by_fkey(name)')
+    .eq('reason', 'admin_adjustment')
+    .order('created_at', { ascending: false })
+    .limit(f.limit ?? 100)
+  if (f.userId) q = q.eq('user_id', f.userId)
+  const res = await q
+  // Tolerate a database that has not had the adjustments migration applied yet.
+  if (res.error) return []
+  const rows = (res.data ?? []) as unknown as Array<Omit<PointAdjustment, 'member' | 'admin' | 'note'> & {
+    note: string | null
+    member: PointAdjustment['member'] | NonNullable<PointAdjustment['member']>[]
+    admin: PointAdjustment['admin'] | NonNullable<PointAdjustment['admin']>[]
+  }>
+  return rows.map((r) => ({ ...r, note: r.note ?? '', member: one(r.member) ?? null, admin: one(r.admin) ?? null }))
+}
+
 export async function fetchLoginDirectory(): Promise<{ name: string; avatar_url: string | null; email: string }[]> {
   const res = await supabase.rpc('login_directory')
   if (res.error) return []
@@ -186,6 +206,13 @@ export async function adminSetLastCleaned(areaId: string, atIso: string, userId?
 }
 export async function adminUndoCompletion(completionId: string) {
   return unwrap(await supabase.rpc('admin_undo_completion', { p_completion_id: completionId })) as { area_id: string }
+}
+/** Give (positive) or take (negative) points with a required reason. Counts in the round, the week and all time. */
+export async function adminAdjustPoints(userId: string, points: number, note: string) {
+  return unwrap(await supabase.rpc('admin_adjust_points', { p_user_id: userId, p_points: points, p_note: note })) as { id: string; user_id: string; points: number }
+}
+export async function adminUndoAdjustment(ledgerId: string) {
+  return unwrap(await supabase.rpc('admin_undo_adjustment', { p_ledger_id: ledgerId })) as { id: string; user_id: string; points: number }
 }
 export async function adminDiscardRound(roundId: string) {
   return unwrap(await supabase.rpc('admin_discard_round', { p_round_id: roundId })) as { round_no: number }

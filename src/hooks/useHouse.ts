@@ -13,6 +13,7 @@ export const queryKeys = {
   rounds: ['league', 'rounds'] as const,
   round: ['league', 'round'] as const,
   history: (filters: unknown) => ['history', filters] as const,
+  adjustments: (filters: unknown) => ['adjustments', filters] as const,
 }
 
 /** Re-renders on an interval so time-based statuses stay current. */

@@ -130,6 +130,21 @@ export function GuidePage() {
             You can only get the forfeit if you had all {turnsWord} in that round. If you joined partway through or were away, you're safe.
             If fewer than two people finished their turns before the time limit, there's no forfeit that round.
           </p>
+          <p><b>Ties.</b> On the table, equal points share a rank. For the awards:</p>
+          <ul className="space-y-1.5">
+            <li><b>Winner</b>: more rescues done wins; then fewer times rescued; then whoever reached the top score <b>first</b>.</li>
+            <li><b>Forfeit</b>: rescued more often loses; then fewer turns; then whoever got there <b>last</b>. If it's still a dead heat, nobody does the forfeit.</li>
+          </ul>
+        </Section>
+
+        <Section icon="⚖️" title="Points for things that aren't a clean">
+          <p>Admins can <b>give or take points</b> for stuff outside the rotations: dirty dishes left out, an area not actually checked, or extra effort nobody asked for.</p>
+          <ul className="space-y-1.5">
+            <li>Every adjustment needs a <b>reason</b>, and everyone can see it in <b>History</b> (filter ⚖️ Adjustments) and on the person's profile.</li>
+            <li>It counts the same as any other points: this round, this week and all time.</li>
+            <li>There's a limit per adjustment (set by the admins), and it can be undone until the round is settled.</li>
+          </ul>
+          <p className="text-slate-400">You'll get a notification if an admin adjusts your points.</p>
         </Section>
 
         <Section icon="🎟️" title="Skip Pass">

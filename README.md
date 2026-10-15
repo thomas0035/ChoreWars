@@ -90,6 +90,7 @@ Push needs the built service worker, so test with `npm run build && npm run prev
 | Change intervals, points, grace, cooldown | Admin → Areas → tap area |
 | Timezone / week start / bonuses | Admin → Settings |
 | Turns per round / max round length / forfeit | Admin → Settings → League rounds |
+| Give or take points (dirty dishes, unchecked area, extra effort) | Admin → Members → tap member → **Adjust points** (reason required; undo from History until the round settles; cap under Settings → "Biggest admin adjustment") |
 | Remove an area | Admin → Areas → tap area → Remove (history is kept; it can be restored) |
 
 ---
@@ -107,6 +108,8 @@ Push needs the built service worker, so test with `npm run build && npm run prev
 | Weekly champion snapshot | `award_weekly_champions()` — idempotent; called lazily by the leaderboard RPC and hourly by pg_cron when available |
 | League rounds: a round ends when every eligible member has had N own turns (default 3) or after the max length (default 45 days). Only your first N turns count for you; rescues always count. Champion → Skip Pass + achievement; lowest scorer among those who had all N turns → forfeit (only if at least two did) | `settle_league_rounds()` — idempotent/lazy like the weekly champion; `league_rounds`, `skip_passes`, `get_league_round()`, `get_league_rounds()`, `mark_forfeit_done()` |
 | Rescue penalty (scheduled person loses `rescue_penalty_points`, default 5) | negative row in `user_points_ledger` written by `complete_cleaning()`; undone with the completion |
+| Ties: champion → more rescues, fewer times rescued, reached the score first; forfeit → rescued more, fewer turns, reached the score last, else no forfeit; weekly champion → reached the score first | `settle_league_rounds()`, `award_weekly_champions()`, `league_round_scores().last_scored_at` (0011) |
+| Admin point adjustments with a required reason, capped by `max_point_adjustment` (default 50), visible to the whole house | `admin_adjust_points()`, `admin_undo_adjustment()`; ledger rows with reason `admin_adjustment` + `note` + `created_by` |
 | Skip Pass: turn goes to last round's lowest scorer (next in rotation if they're away), counts as their turn, can't be skipped again; rotation then resumes after the skipper | `use_skip_pass()`, `league_skip_target()`, `cleaning_area_state.skip_from_user_id` |
 | "Looks fine" needs half the rotation to agree | `dismiss_votes` + `vote_dismiss()`; admins override with `dismiss_activation()` |
 | Away members skipped everywhere, no penalty, round doesn't wait for them, no forfeit | `house_members.away`, `admin_set_member_away()`, `next_rotation_user()` skips them |

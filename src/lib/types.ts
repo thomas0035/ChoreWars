@@ -82,6 +82,18 @@ export interface Completion {
   cleaner: { name: string } | null
 }
 
+/** A manual give/take of points by an admin (a ledger row with reason 'admin_adjustment'). */
+export interface PointAdjustment {
+  id: string
+  user_id: string
+  points: number
+  note: string
+  created_at: string
+  created_by: string | null
+  member: { name: string } | null
+  admin: { name: string } | null
+}
+
 export interface LeaderboardRow {
   user_id: string
   name: string

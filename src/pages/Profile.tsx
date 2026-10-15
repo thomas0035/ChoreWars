@@ -5,7 +5,8 @@ import { format } from 'date-fns'
 import { Bell, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useHouse, useReigningChampion, queryKeys } from '@/hooks/useHouse'
-import { fetchUserStats, updateMyName, updateMyPassword } from '@/lib/api'
+import { fetchAdjustments, fetchUserStats, updateMyName, updateMyPassword } from '@/lib/api'
+import { AdjustmentItem } from '@/pages/History'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
 import { disablePush, enablePush, getPushState, isIosBrowserTab, sendTestNotification, type PushState } from '@/lib/push'
@@ -24,6 +25,7 @@ export function ProfilePage() {
 
   const stats = useQuery({ queryKey: queryKeys.stats(targetId), queryFn: () => fetchUserStats(targetId), enabled: Boolean(targetId) })
   const champ = useReigningChampion()
+  const adjustments = useQuery({ queryKey: queryKeys.adjustments({ userId: targetId, limit: 5 }), queryFn: () => fetchAdjustments({ userId: targetId, limit: 5 }), enabled: Boolean(targetId) })
   const allAchievements = useQuery({
     queryKey: ['achievements'],
     queryFn: async () => {
@@ -77,6 +79,16 @@ export function ProfilePage() {
         <Line label="Turns this round" value={s ? `${Math.min(s.round_turns, s.round_turns_needed)}/${s.round_turns_needed}` : undefined} />
         <Line label="Penalties this round" value={s ? (s.penalty_points > 0 ? `−${s.penalty_points} pts` : 'none') : undefined} />
       </Card>
+
+      {(adjustments.data?.length ?? 0) > 0 && (
+        <>
+          <SectionTitle>Recent point adjustments</SectionTitle>
+          <Card className="divide-y divide-line py-1">
+            {adjustments.data!.map((a) => <AdjustmentItem key={a.id} a={a} meId={me?.id} />)}
+          </Card>
+          <p className="text-xs text-slate-500 mt-1.5 px-1">Given or taken by an admin, outside normal cleans. The full list is in History.</p>
+        </>
+      )}
 
       <SectionTitle>Achievements</SectionTitle>
       <div className="grid grid-cols-2 gap-2">

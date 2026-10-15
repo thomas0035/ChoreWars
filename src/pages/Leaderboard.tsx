@@ -121,6 +121,7 @@ export function LeaderboardPage() {
         The league runs in rounds. A round ends once everyone has had {turns} {turns === 1 ? 'turn' : 'turns'}, or after {maxDays} days at most.
         Only your first {turns} {turns === 1 ? 'turn counts' : 'turns count'} for you, but every rescue you do counts in full, and getting rescued costs {penalty} points.
         The winner earns a 🎟️ Skip Pass. The lowest scorer among those who had all their turns takes the forfeit.
+        Ties go to whoever did more rescues, then whoever got there first (see the guide).
         A Skip Pass hands your turn to last round's lowest scorer. A weekly champion is still crowned every week, and all-time points are kept forever.
       </p>
     </div>

@@ -35,6 +35,9 @@ const COPY: Record<string, string> = {
   invalid_value: 'That value is not allowed.',
   skip_pass_used: "That round's Skip Pass was already used, so the round can't be discarded.",
   no_push_devices: 'Turn on notifications for this device first.',
+  member_not_found: 'That person is not in this house.',
+  note_required: 'Add a reason (3 to 200 characters) so everyone can see why.',
+  adjustment_not_found: 'That adjustment no longer exists.',
 }
 
 export function friendlyError(err: unknown): string {
@@ -51,6 +54,10 @@ export function friendlyError(err: unknown): string {
     return at && !Number.isNaN(at.getTime())
       ? `Give them a chance first — volunteering opens ${format(at, 'EEE h:mm a')}.`
       : 'Volunteering opens after the grace period.'
+  }
+  if (msg === 'adjustment_out_of_range') {
+    const max = e?.details && /^\d+$/.test(e.details) ? e.details : null
+    return max ? `Adjustments must be between 1 and ${max} points (change the limit in Settings).` : 'That adjustment is too large or zero.'
   }
   if (COPY[msg]) return COPY[msg]!
   if (msg.includes('Invalid login credentials')) return 'Wrong password. Try again.'

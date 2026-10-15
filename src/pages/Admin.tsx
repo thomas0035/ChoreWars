@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { useHouse, useLeagueRounds } from '@/hooks/useHouse'
 import { format } from 'date-fns'
 import {
-  adminAddMember, adminDiscardRound, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberAway, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
+  adminAddMember, adminAdjustPoints, adminDiscardRound, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberAway, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -320,6 +320,7 @@ function MembersTab() {
   const [newName, setNewName] = useState('')
   const [busy, setBusy] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(false)
+  const [adjusting, setAdjusting] = useState<Member | null>(null)
 
   useEffect(() => { setName(selected?.name ?? ''); setConfirmRemove(false) }, [selected])
 
@@ -357,6 +358,12 @@ function MembersTab() {
               {selected.role === 'admin' ? 'Remove admin role' : 'Make admin'}
             </Button>
             <div>
+              <Button variant="secondary" className="w-full" onClick={() => { setAdjusting(selected); setSelected(null) }}>⚖️ Adjust points</Button>
+              <p className="text-xs text-slate-500 mt-1.5 px-1">
+                Give or take points for things that aren't a clean: dishes left dirty, an area not checked, extra effort. A reason is required and everyone can see it in History.
+              </p>
+            </div>
+            <div>
               <Button variant="secondary" className="w-full" onClick={async () => {
                 const away = !selected.away
                 if (await run(() => adminSetMemberAway(selected.id, away), away ? `${selected.name} is away — skipped in every rotation` : `${selected.name} is back in the rotations`)) setSelected({ ...selected, away })
@@ -380,6 +387,8 @@ function MembersTab() {
         )}
       </Sheet>
 
+      <AdjustPointsSheet key={adjusting?.id ?? 'none'} member={adjusting} onClose={() => setAdjusting(null)} />
+
       <Sheet open={addOpen} onClose={() => setAddOpen(false)} title="Add member">
         <form className="space-y-4" onSubmit={async (e) => {
           e.preventDefault()
@@ -397,6 +406,72 @@ function MembersTab() {
         </form>
       </Sheet>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Point adjustments
+// ---------------------------------------------------------------------------
+const DEDUCT_REASONS = ['Left dirty dishes out', 'Area not checked after cleaning', 'Left a mess behind', 'Skipped a shared task']
+const BONUS_REASONS = ['Extra effort', 'Cleaned something off-rota', 'Helped someone out']
+
+function AdjustPointsSheet({ member, onClose }: { member: Member | null; onClose: () => void }) {
+  const { settings } = useHouse()
+  const run = useAdminAction()
+  const max = Math.max(1, Number(settings.max_point_adjustment ?? '50') || 50)
+  const [mode, setMode] = useState<'deduct' | 'give'>('deduct')
+  const [amount, setAmount] = useState('5')
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const n = Math.floor(Number(amount))
+  const valid = Number.isFinite(n) && n >= 1 && n <= max && note.trim().length >= 3
+  const reasons = mode === 'deduct' ? DEDUCT_REASONS : BONUS_REASONS
+
+  return (
+    <Sheet open={member !== null} onClose={() => { if (!busy) onClose() }} title={member ? `Adjust ${member.name}'s points` : undefined}>
+      {member && (
+        <form className="space-y-4" onSubmit={async (e) => {
+          e.preventDefault()
+          if (!valid) return
+          setBusy(true)
+          const signed = mode === 'deduct' ? -n : n
+          const ok = await run(() => adminAdjustPoints(member.id, signed, note.trim()),
+            mode === 'deduct' ? `−${n} for ${member.name}` : `+${n} for ${member.name}`)
+          setBusy(false)
+          if (ok) onClose()
+        }}>
+          <div className="grid grid-cols-2 rounded-2xl bg-card-2 border border-line p-1">
+            {(['deduct', 'give'] as const).map((m) => (
+              <button key={m} type="button" onClick={() => setMode(m)}
+                className={cx('h-10 rounded-xl text-sm font-semibold transition-colors', mode === m ? (m === 'deduct' ? 'bg-rose-400/90 text-slate-950' : 'bg-emerald-400/90 text-slate-950') : 'text-slate-400 hover:text-slate-200')}>
+                {m === 'deduct' ? '− Deduct' : '+ Give'}
+              </button>
+            ))}
+          </div>
+          <Field label="Points" hint={`1 to ${max}. The limit is in Settings.`}>
+            <input type="number" inputMode="numeric" min={1} max={max} value={amount} onChange={(e) => setAmount(e.target.value)} required />
+          </Field>
+          <Field label="Reason (everyone will see this)">
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} rows={2} required minLength={3}
+              placeholder={mode === 'deduct' ? 'What did they leave undone?' : 'What did they do?'} />
+          </Field>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
+            {reasons.map((r) => (
+              <button key={r} type="button" onClick={() => setNote(r)}
+                className={cx('shrink-0 rounded-full border px-3 h-8 text-xs font-semibold', note === r ? 'bg-slate-100 text-slate-900 border-slate-100' : 'border-line text-slate-300 hover:bg-white/5')}>
+                {r}
+              </button>
+            ))}
+          </div>
+          <Button type="submit" className="w-full" variant={mode === 'deduct' ? 'danger' : 'primary'} loading={busy} disabled={!valid}>
+            {mode === 'deduct' ? `Take ${Number.isFinite(n) && n > 0 ? n : ''} points from ${member.name}` : `Give ${member.name} ${Number.isFinite(n) && n > 0 ? n : ''} points`}
+          </Button>
+          <p className="text-xs text-slate-500 px-1">
+            Counts towards the current round, this week and all time. {member.name} gets a notification. You can undo it from History until the round is settled.
+          </p>
+        </form>
+      )}
+    </Sheet>
   )
 }
 
@@ -429,6 +504,7 @@ function SettingsTab() {
     streak_bonus_5: settings.streak_bonus_5 ?? '5',
     streak_bonus_10: settings.streak_bonus_10 ?? '10',
     rescue_penalty_points: settings.rescue_penalty_points ?? '5',
+    max_point_adjustment: settings.max_point_adjustment ?? '50',
     league_turns_per_round: settings.league_turns_per_round ?? '3',
     league_max_round_days: settings.league_max_round_days ?? '45',
     league_forfeit: settings.league_forfeit ?? 'Buys snacks for the house',
@@ -481,6 +557,9 @@ function SettingsTab() {
       </div>
       <Field label="Rescue penalty" hint="Points the scheduled person loses when someone else cleans their area. 0 turns it off.">
         <input type="number" inputMode="numeric" min="0" value={v('rescue_penalty_points')} onChange={(e) => set('rescue_penalty_points', e.target.value)} />
+      </Field>
+      <Field label="Biggest admin adjustment" hint="The most points an admin can give or take in one go (Admin → Members → Adjust points).">
+        <input type="number" inputMode="numeric" min="1" max="500" value={v('max_point_adjustment')} onChange={(e) => set('max_point_adjustment', e.target.value)} />
       </Field>
       <p className="text-xs text-slate-500 px-1">Per-area points (normal / rescue) and grace periods are set on each area.</p>
 
