@@ -116,22 +116,26 @@ function Row({ children }: { children: ReactNode }) {
 /** An admin give/take of points, with the reason and who did it. */
 export function AdjustmentItem({ a, meId, onUndo }: { a: PointAdjustment; meId?: string; onUndo?: () => void }) {
   const gain = a.points > 0
+  const [expanded, setExpanded] = useState(false)
+  const long = a.note.length > 40
   return (
-    <div className="flex items-center gap-3 py-3">
+    <div className="flex items-start gap-3 py-3 cursor-pointer" onClick={() => setExpanded((v) => !v)}>
       <div className="h-10 w-10 rounded-2xl bg-card-2 flex items-center justify-center text-xl shrink-0">⚖️</div>
       <div className="min-w-0 flex-1">
         <div className="font-semibold truncate">
-          <Link to={`/profile/${a.user_id}`} className={cx(a.user_id === meId && 'text-emerald-200')}>{a.member?.name ?? 'Someone'}</Link>
-          <span className="text-slate-400 font-normal"> · {a.note}</span>
+          <Link to={`/profile/${a.user_id}`} onClick={(e) => e.stopPropagation()} className={cx(a.user_id === meId && 'text-emerald-200')}>{a.member?.name ?? 'Someone'}</Link>
+          <span className="text-slate-500 font-normal text-xs"> · {gain ? 'Bonus' : 'Deduction'} by {a.admin?.name ?? 'an admin'}</span>
         </div>
-        <div className="text-xs text-slate-500 truncate">
-          {gain ? 'Bonus' : 'Deduction'} by {a.admin?.name ?? 'an admin'} · {timeLabel(a.created_at)}
+        <p className={cx('text-sm text-slate-300 break-words', !expanded && 'line-clamp-1')}>{a.note}</p>
+        <div className="text-xs text-slate-500">
+          {timeLabel(a.created_at)}
+          {long && <> · <span className="text-sky-300 font-semibold">{expanded ? 'Show less' : 'See more'}</span></>}
           {onUndo && (
-            <> · <button onClick={onUndo} className="text-rose-300 hover:underline font-semibold">Undo</button></>
+            <> · <button onClick={(e) => { e.stopPropagation(); onUndo() }} className="text-rose-300 hover:underline font-semibold">Undo</button></>
           )}
         </div>
       </div>
-      <span className={cx('font-bold tabular-nums', gain ? 'text-emerald-300' : 'text-rose-300')}>{gain ? '+' : '−'}{Math.abs(a.points)}</span>
+      <span className={cx('font-bold tabular-nums pt-0.5', gain ? 'text-emerald-300' : 'text-rose-300')}>{gain ? '+' : '−'}{Math.abs(a.points)}</span>
     </div>
   )
 }
