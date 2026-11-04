@@ -15,6 +15,7 @@ import { GuidePage } from '@/pages/Guide'
 import { LeaderboardPage } from '@/pages/Leaderboard'
 import { ProfilePage } from '@/pages/Profile'
 import { AdminPage } from '@/pages/Admin'
+import { InventoryPage } from '@/pages/Inventory'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +98,7 @@ export default function App() {
                   <Route path="history" element={<HistoryPage />} />
                   <Route path="guide" element={<GuidePage />} />
                   <Route path="league" element={<LeaderboardPage />} />
+                  <Route path="inventory" element={<InventoryPage />} />
                   <Route path="profile" element={<ProfilePage />} />
                   <Route path="profile/:id" element={<ProfilePage />} />
                   <Route path="admin" element={<AdminPage />} />

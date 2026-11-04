@@ -167,6 +167,18 @@ export function GuidePage() {
           <p>Tell an admin when you're back so you're put back in the rotations.</p>
         </Section>
 
+        <Section icon="🧺" title="Stock: shared food and who owes whom">
+          <p>Bought something for the house? Open <b>Stock</b>, tap <Btn>+ I bought something</Btn> and enter what it is, how much (pieces, packs, grams, kg, ml or litres) and the total price.</p>
+          <ul className="space-y-1.5">
+            <li>When you take some, log it: tap <Btn>+</Btn> for pieces and packs (tapped one too many? tap <Btn>−</Btn>), or <Btn>Take</Btn> and enter the amount.</li>
+            <li>You owe the buyer your share. A 10-chapati packet for ₹80 is ₹8 a chapati, so taking 3 costs ₹24.</li>
+            <li>If the rest gets thrown away (it went off, expired), the buyer marks it <b>finished</b>. The full price is then shared by the people who actually took some. If 8 of the 10 chapatis were eaten, each one now costs ₹10. If nobody took any, the buyer keeps the cost.</li>
+            <li>Debts are added up across all items and netted between each pair of people, so you only see one number per person.</li>
+            <li>Pay the person you owe. <b>They</b> tap <Btn>Received</Btn> to clear it. Only the person who was owed can record a payment.</li>
+          </ul>
+          <p className="text-slate-400">Logged the wrong amount? Fix it within 24 hours (− or undo on the item), or ask an admin. The buyer can delete an item they added by mistake; anyone who took some is told, and stops owing for it. Everyone gets a notification when something new is added.</p>
+        </Section>
+
         <Section icon="🥇" title="Weekly champion and badges">
           <p>Separately from rounds, whoever scores the most points each week is <b>Weekly Champion</b>. It's just for bragging rights.</p>
           <p>Badges (first clean, streaks, rescues and more) are on your <b>Profile</b>. Your all-time points are kept forever.</p>

@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type {
-  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus, Member, PointAdjustment, RotationMember, SkipPassResult, UserStats,
+  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, InventoryBalance, InventoryData, InventoryItem, InventoryPayment, InventoryTake, InventoryUnit, LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus, Member, PointAdjustment, RotationMember, SkipPassResult, UserStats,
 } from './types'
 
 function unwrap<T>(res: { data: T | null; error: { message: string; details?: string } | null }): T {
@@ -131,6 +131,25 @@ export async function fetchAdjustments(f: { userId?: string; limit?: number } = 
   return rows.map((r) => ({ ...r, note: r.note ?? '', member: one(r.member) ?? null, admin: one(r.admin) ?? null }))
 }
 
+/** Items (newest first), every take with its current cost, payments and net balances. */
+export async function fetchInventory(): Promise<InventoryData> {
+  const [items, takes, payments, balances] = await Promise.all([
+    supabase.from('inventory_item_summary').select('id, name, unit, total_qty, price_paise, bought_by, created_at, finished_at, finished_by, taken_qty, remaining_qty, unit_cost').order('created_at', { ascending: false }).limit(300),
+    supabase.from('inventory_take_costs').select('id, item_id, user_id, qty, created_at, bought_by, cost_paise').order('created_at', { ascending: false }),
+    supabase.from('inventory_payments').select('id, from_user, to_user, amount_paise, note, created_at').order('created_at', { ascending: false }).limit(100),
+    supabase.rpc('inventory_balances'),
+  ])
+  // numeric columns: coerce in case they arrive as strings.
+  return {
+    items: (unwrap(items) as InventoryItem[]).map((i) => ({
+      ...i, total_qty: Number(i.total_qty), taken_qty: Number(i.taken_qty), remaining_qty: Number(i.remaining_qty), unit_cost: Number(i.unit_cost),
+    })),
+    takes: (unwrap(takes) as InventoryTake[]).map((t) => ({ ...t, qty: Number(t.qty), cost_paise: Number(t.cost_paise) })),
+    payments: unwrap(payments) as InventoryPayment[],
+    balances: unwrap(balances) as InventoryBalance[],
+  }
+}
+
 export async function fetchLoginDirectory(): Promise<{ name: string; avatar_url: string | null; email: string }[]> {
   const res = await supabase.rpc('login_directory')
   if (res.error) return []
@@ -173,6 +192,40 @@ export async function spendSkipPass(areaId: string): Promise<SkipPassResult> {
 /** Loser or admin ticks a round's forfeit off (or back on). */
 export async function markForfeitDone(resultId: string, done = true) {
   return unwrap(await supabase.rpc('mark_forfeit_done', { p_result_id: resultId, p_done: done }))
+}
+
+// Inventory: costs, caps and permissions are all enforced in the inventory_* RPCs.
+export async function inventoryAddItem(name: string, unit: InventoryUnit, qty: number, pricePaise: number) {
+  return unwrap(await supabase.rpc('inventory_add_item', { p_name: name, p_unit: unit, p_qty: qty, p_price_paise: pricePaise })) as { id: string }
+}
+export async function inventoryUpdateItem(itemId: string, name: string, qty: number, pricePaise: number) {
+  return unwrap(await supabase.rpc('inventory_update_item', { p_item_id: itemId, p_name: name, p_qty: qty, p_price_paise: pricePaise })) as { id: string }
+}
+export async function inventoryDeleteItem(itemId: string) {
+  return unwrap(await supabase.rpc('inventory_delete_item', { p_item_id: itemId })) as { id: string; takes_removed: number }
+}
+/** Buyer or admin: finish early (leftovers thrown away), or reopen. */
+export async function inventoryFinishItem(itemId: string, finished = true) {
+  return unwrap(await supabase.rpc('inventory_finish_item', { p_item_id: itemId, p_finished: finished })) as { id: string; finished: boolean }
+}
+export async function inventoryTake(itemId: string, qty: number) {
+  return unwrap(await supabase.rpc('inventory_take', { p_item_id: itemId, p_qty: qty })) as { id: string; item_id: string; left: number; finished: boolean }
+}
+/** The "−" button: take back some of my own takes from the last 24 hours, newest first. */
+export async function inventoryPutBack(itemId: string, qty = 1) {
+  return unwrap(await supabase.rpc('inventory_put_back', { p_item_id: itemId, p_qty: qty })) as { item_id: string; qty: number; left: number }
+}
+export async function inventoryUndoTake(takeId: string) {
+  return unwrap(await supabase.rpc('inventory_undo_take', { p_take_id: takeId })) as { id: string; item_id: string }
+}
+/** Called by the person who was owed: "received ₹X from fromUser". */
+export async function inventoryRecordPayment(fromUser: string, amountPaise: number, note?: string) {
+  return unwrap(await supabase.rpc('inventory_record_payment', { p_from_user: fromUser, p_amount_paise: amountPaise, p_note: note ?? null })) as {
+    id: string; amount_paise: number; still_owed: number
+  }
+}
+export async function inventoryUndoPayment(paymentId: string) {
+  return unwrap(await supabase.rpc('inventory_undo_payment', { p_payment_id: paymentId })) as { id: string }
 }
 
 // ---------------------------------------------------------------------------

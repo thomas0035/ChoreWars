@@ -102,6 +102,21 @@ export function randomGreeting(name: string, now: Date = new Date()): string {
   return tpl.replace('{tod}', greeting(now)).replace('{name}', first)
 }
 
+/** 8000 -> "₹80", 2450 -> "₹24.50" */
+export function formatRupees(paise: number): string {
+  const p = Math.round(paise)
+  return '₹' + (p / 100).toLocaleString('en-IN', p % 100 === 0 ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const UNIT_LABEL: Record<string, string> = { pcs: 'pcs', pack: 'packs', g: 'g', kg: 'kg', ml: 'ml', l: 'L' }
+
+/** (10, 'pcs') -> "10 pcs", (1, 'pack') -> "1 pack", (1.5, 'kg') -> "1.5 kg" */
+export function formatQty(qty: number, unit: string): string {
+  const n = Math.round(qty * 1000) / 1000
+  const label = unit === 'pack' && n === 1 ? 'pack' : (UNIT_LABEL[unit] ?? unit)
+  return `${n.toLocaleString('en-IN', { maximumFractionDigits: 3 })} ${label}`
+}
+
 export function ordinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd']
   const v = n % 100

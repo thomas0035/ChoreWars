@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Home, LayoutGrid, Trophy, User, Settings, History, Info } from 'lucide-react'
+import { Home, LayoutGrid, Trophy, User, Settings, History, Info, ShoppingBasket } from 'lucide-react'
 import { useHouse, useRealtimeSync } from '@/hooks/useHouse'
 import { useAuth } from '@/hooks/useAuth'
 import { cx } from './ui'
@@ -15,6 +15,7 @@ export function AppShell() {
     { to: '/', label: 'Home', icon: Home },
     { to: '/areas', label: 'Areas', icon: LayoutGrid },
     { to: '/league', label: 'League', icon: Trophy },
+    { to: '/inventory', label: 'Stock', icon: ShoppingBasket },
     { to: '/profile', label: 'Profile', icon: User },
     ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Settings }] : []),
   ]

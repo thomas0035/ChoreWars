@@ -230,3 +230,59 @@ export interface CompletionResult {
   next_user_name: string | null
   new_achievements: Achievement[]
 }
+
+// ---------------------------------------------------------------------------
+// Inventory
+// ---------------------------------------------------------------------------
+export type InventoryUnit = 'pcs' | 'pack' | 'g' | 'kg' | 'ml' | 'l'
+
+/** A row of inventory_item_summary. Quantities and costs come back from Postgres as numbers. */
+export interface InventoryItem {
+  id: string
+  name: string
+  unit: InventoryUnit
+  total_qty: number
+  price_paise: number
+  bought_by: string
+  created_at: string
+  finished_at: string | null
+  finished_by: string | null
+  taken_qty: number
+  remaining_qty: number
+  /** Paise per unit: price / total while open, price / taken once finished with leftovers. */
+  unit_cost: number
+}
+
+/** A row of inventory_take_costs. */
+export interface InventoryTake {
+  id: string
+  item_id: string
+  user_id: string
+  qty: number
+  created_at: string
+  bought_by: string
+  cost_paise: number
+}
+
+export interface InventoryPayment {
+  id: string
+  from_user: string
+  to_user: string
+  amount_paise: number
+  note: string | null
+  created_at: string
+}
+
+/** debtor owes creditor amount_paise (always > 0), netted across all items and payments. */
+export interface InventoryBalance {
+  debtor: string
+  creditor: string
+  amount_paise: number
+}
+
+export interface InventoryData {
+  items: InventoryItem[]
+  takes: InventoryTake[]
+  payments: InventoryPayment[]
+  balances: InventoryBalance[]
+}

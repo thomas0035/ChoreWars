@@ -115,6 +115,9 @@ Push needs the built service worker, so test with `npm run build && npm run prev
 | Away members skipped everywhere, no penalty, round doesn't wait for them, no forfeit | `house_members.away`, `admin_set_member_away()`, `next_rotation_user()` skips them |
 | Streak: per-user, global, only broken by a rescue | inside `complete_cleaning()` (`user_streaks`) |
 | Achievements evaluated in the same transaction | `evaluate_achievements()` called from `complete_cleaning()` |
+| Inventory: take cost = qty × price / total while open, qty × price / taken once finished early (leftovers spread over takers); can't take more than is left; last take finishes the item | `inventory_take()`, `inventory_finish_item()`, views `inventory_item_summary` / `inventory_take_costs` (0012) |
+| Inventory balances netted per pair, minus payments; only the receiver records a payment, capped at what's owed | `inventory_house_balances()`, `inventory_balances()`, `inventory_record_payment()`, `inventory_undo_payment()` |
+| Inventory corrections: "−" / undo own takes within 24 h (admin any time), buyer/admin edit, delete (takes go too, takers notified, payments kept) and reopen | `inventory_put_back()`, `inventory_undo_take()`, `inventory_update_item()`, `inventory_delete_item()` (0013), `inventory_finish_item(p_finished => false)` |
 | RLS: members read, nobody writes directly | `20260913000003_rls_realtime.sql` |
 
 ---

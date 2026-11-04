@@ -183,7 +183,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
           />
           <motion.div
             role="dialog" aria-modal="true"
-            className="relative w-full sm:max-w-md bg-card border border-line rounded-t-[28px] sm:rounded-[28px] p-5 pb-6 safe-bottom shadow-2xl max-h-[90dvh] overflow-y-auto"
+            className="relative w-full sm:max-w-md bg-card border border-line rounded-t-[28px] sm:rounded-[28px] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl max-h-[90dvh] overflow-y-auto"
             initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
           >

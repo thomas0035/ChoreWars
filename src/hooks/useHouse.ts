@@ -14,6 +14,7 @@ export const queryKeys = {
   round: ['league', 'round'] as const,
   history: (filters: unknown) => ['history', filters] as const,
   adjustments: (filters: unknown) => ['adjustments', filters] as const,
+  inventory: ['inventory'] as const,
 }
 
 /** Re-renders on an interval so time-based statuses stay current. */

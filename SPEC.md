@@ -1916,7 +1916,7 @@ Potential future additions:
 * Photo proof of cleaning
 * Comments on cleaning requests
 * House announcements
-* Shared expenses
+* ~~Shared expenses~~ **[V5]** Built as Inventory (shared purchases), see section 49.
 * Cleaning statistics
 * AI-generated insights
 * **[V3, new]** A general missed/skipped-task rule (time-based failure beyond simple streak-breaking on volunteer rescue — see section 31)
@@ -1980,3 +1980,17 @@ The app should make the process:
 **Fair + Simple + Shared + Competitive + Cooperative + Fun.**
 
 Prioritize reliability of rotation, completion, volunteering, and shared state before adding advanced gamification.
+
+---
+
+# 49. INVENTORY (SHARED PURCHASES) **[V5, new]**
+
+Members buy food and other things for the whole house. The **Stock** tab tracks what was bought, who took how much, and who owes whom.
+
+* **Item:** name, unit (pieces, packs, g, kg, ml, L), total quantity and total price. Whoever adds it is the buyer. Everyone else gets a push notification.
+* **Take:** a member logs how much they took (− / + stepper for pieces/packs, or an amount). "−" takes back their own takes from the last 24 hours, newest first. They cannot take more than is left. When the last of it is taken, the item finishes by itself.
+* **Cost of a take:** while the item is open, `qty × price / total_qty`. If the buyer (or an admin) finishes it early because the rest was thrown away, the full price is spread over what was actually taken: `qty × price / taken_qty`. If nobody took any, the buyer absorbs the cost. The buyer's own takes cost them nothing extra.
+* **Balances:** take costs owed to each buyer, minus payments, netted per pair of people, so each pair shows one number.
+* **Payments:** only the person who was owed records "received ₹X from Y", capped at what Y currently owes them. Y gets a push notification.
+* **Corrections:** a member can undo their own take within 24 hours (admins at any time). Undoing the take that emptied an item reopens it. The buyer or an admin can edit the name, quantity (not below what's taken) and price while the item is open, delete an item (others' takes go with it and they're notified; payments stay, so the buyer may owe a refund), and put an item finished early back in stock. The receiver or an admin can undo a payment.
+* Money is stored as whole paise. Costs are worked out from the takes when they are read, so editing a price or finishing an item re-prices every take.

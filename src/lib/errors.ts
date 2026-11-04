@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { formatRupees } from './format'
 
 const COPY: Record<string, string> = {
   not_authenticated: 'You need to sign in first.',
@@ -38,6 +39,20 @@ const COPY: Record<string, string> = {
   member_not_found: 'That person is not in this house.',
   note_required: 'Add a reason (3 to 200 characters) so everyone can see why.',
   adjustment_not_found: 'That adjustment no longer exists.',
+  item_not_found: 'That item no longer exists.',
+  item_finished: 'That item is finished. Nothing left to take.',
+  invalid_name: 'Give the item a name (up to 60 characters).',
+  invalid_unit: 'Pick a unit.',
+  invalid_amount: 'Enter an amount greater than 0.',
+  invalid_price: 'Enter a valid price.',
+  whole_number_only: 'Use whole numbers for pieces and packs.',
+  not_buyer: 'Only the person who bought it (or an admin) can do that.',
+  nothing_to_put_back: "You haven't taken any of this.",
+  nothing_left: 'All of it has been taken, so it stays finished.',
+  take_not_found: 'That entry no longer exists.',
+  undo_window_passed: 'You can only undo within 24 hours. Ask an admin.',
+  nothing_owed: "They don't owe you anything right now.",
+  payment_not_found: 'That payment no longer exists.',
 }
 
 export function friendlyError(err: unknown): string {
@@ -58,6 +73,13 @@ export function friendlyError(err: unknown): string {
   if (msg === 'adjustment_out_of_range') {
     const max = e?.details && /^\d+$/.test(e.details) ? e.details : null
     return max ? `Adjustments must be between 1 and ${max} points (change the limit in Settings).` : 'That adjustment is too large or zero.'
+  }
+  if (msg === 'not_enough_left') return e?.details ? `Only ${e.details} left.` : 'Not enough left.'
+  if (msg === 'not_that_many') return e?.details ? `You can only put back ${e.details} (what you took in the last 24 hours).` : "You didn't take that many in the last 24 hours."
+  if (msg === 'qty_below_taken') return e?.details ? `${e.details} has already been taken, so the quantity can't be lower.` : "The quantity can't be lower than what's been taken."
+  if (msg === 'amount_exceeds_debt') {
+    const owed = e?.details && /^\d+$/.test(e.details) ? Number(e.details) : null
+    return owed !== null ? `They only owe you ${formatRupees(owed)}.` : "That's more than they owe you."
   }
   if (COPY[msg]) return COPY[msg]!
   if (msg.includes('Invalid login credentials')) return 'Wrong password. Try again.'
