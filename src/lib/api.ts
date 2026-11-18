@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import type {
-  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, InventoryBalance, InventoryData, InventoryItem, InventoryPayment, InventoryTake, InventoryUnit, LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus, Member, PointAdjustment, RotationMember, SkipPassResult, UserStats,
+  Area, AreaState, Champion, Completion, CompletionResult, DismissVoteResult, HouseData, HouseRole, InventoryBalance, InventoryData, InventoryItem, InventoryPayment, InventoryTake, InventoryUnit, LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus, Member, RoundStanding, PointAdjustment, RotationMember, SkipPassResult, UserStats,
 } from './types'
 
 function unwrap<T>(res: { data: T | null; error: { message: string; details?: string } | null }): T {
@@ -77,6 +77,11 @@ export async function fetchLastWeekChampion(): Promise<Champion | null> {
 /** Settled league rounds, newest first. The first row is "last round". */
 export async function fetchLeagueRounds(limit = 12): Promise<LeagueRound[]> {
   return unwrap(await supabase.rpc('get_league_rounds', { p_limit: limit })) as LeagueRound[]
+}
+
+/** Everyone's final score and turns for a settled round. */
+export async function fetchRoundStandings(roundId: string): Promise<RoundStanding[]> {
+  return unwrap(await supabase.rpc('get_round_standings', { p_round_id: roundId })) as RoundStanding[]
 }
 
 /** The open round with everyone's progress, or null before the house's first clean. */

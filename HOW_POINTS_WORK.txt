@@ -3,15 +3,22 @@ CHOREWARS: HOW THE POINTS WORK
 
 THE BASICS
 ----------
-Each area (Kitchen, Hall, Sink, Bathrooms) has its own rotation of people.
+Each area (Kitchen, Hall, Sink, Bathrooms...) has a list of people who clean it.
 
 1. When an area looks dirty, anyone can tap "Needs cleaning".
-   Flagging gives no points, it just tells the next person it's their turn.
-2. The person whose turn it is cleans it and taps "Mark as done".
-3. The turn then moves to the next person in that area's rotation.
+   Flagging gives no points.
+2. The turn goes to whoever on that area's list:
+     - has no other task open, and
+     - has had the fewest turns this round (counting ALL areas).
+   If that's a tie, it goes to whoever has waited longest.
+3. That person cleans it and taps "Mark as done".
+
+So nobody gets three areas at once while someone else has none, and
+everyone gets about the same number of turns. The app shows who is
+"likely next" for each area, but that can change until it's flagged.
 
 If the area actually looks fine, the person whose turn it is can start a
-"Looks fine" vote. If half the people on that rotation agree, the flag is
+"Looks fine" vote. If half the people who clean that area agree, the flag is
 cleared and nobody gains or loses anything.
 
 
@@ -47,12 +54,12 @@ might get 3 turns and someone else none. That isn't fair.
 
 Instead, the league is played in ROUNDS:
 
-  - A round ends once everyone has had 3 turns.
+  - A round ends once everyone has had 2 turns.
     A turn counts once the area gets cleaned, by you or by someone who
     rescued you.
-  - If a round is taking too long, it ends anyway after 45 days.
+  - If a round is taking too long, it ends anyway after 60 days.
 
-Only your FIRST 3 TURNS in a round count toward your score. So getting
+Only your FIRST 2 TURNS in a round count toward your score. So getting
 more turns than others doesn't give you an advantage.
 
 Rescues you do for other people ALWAYS count, so volunteering is the way
@@ -69,10 +76,12 @@ END OF A ROUND
     Does the forfeit the house has agreed on (for example, buying snacks
     for everyone). They tick it off in the app once it's done.
 
-The forfeit is only given to people who actually had all 3 of their turns.
-If you joined partway through a round or were away, you can't get it.
-If fewer than two people had all their turns before the 45 days ran out,
-there is no forfeit that round.
+If you joined partway through a round or were away, you can't get the
+forfeit. Everyone else can, even if the round hit the 60-day limit before
+they had both turns. (Not doing your turns no longer keeps you safe.)
+
+After a round, tap "Show full table" under Last round on the League tab to
+see everyone's final score and turns.
 
 
 SKIP PASS
@@ -81,18 +90,19 @@ The round winner gets a Skip Pass. When it's your turn on a flagged area,
 you can use it to pass that task on:
 
   - The task goes to the person who came LAST in the previous round.
-  - If they're away, it goes to the next person in the rotation instead.
+  - If they're away, it goes to whoever has had the fewest turns instead.
   - It counts as their turn, not yours. You get no points, but no penalty,
     and your streak stays safe.
   - A task that was passed to you with a Skip Pass can't be skipped again.
-  - Once it's cleaned, the rotation carries on as if you had done it.
+  - A used pass counts as a turn for you, so the next task doesn't come
+    straight back to you.
 
 
 AWAY
 ----
 If you're travelling, ask an admin to mark you as away.
 While you're away:
-  - You're skipped in every rotation.
+  - You don't get any turns.
   - You can't be penalised.
   - The round doesn't wait for you, and you can't get the forfeit.
 

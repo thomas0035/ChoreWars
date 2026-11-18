@@ -111,14 +111,13 @@ const CONFIRM: Record<ActionKind, string> = {
 function Body({ p, now }: { p: Pending; now: Date }) {
   const { kind, view } = p
   const a = view.area
-  const next = view.rotationPreview[1] ?? view.rotationPreview[0]
   const lastCleaned = a.state.last_cleaned_at ? `Last cleaned ${timeAgo(a.state.last_cleaned_at, now)}.` : 'No cleaning recorded yet.'
 
   if (kind === 'mark') {
     return (
       <div className="space-y-2 text-slate-300">
         <p>{lastCleaned}</p>
-        <p>{view.scheduled ? <><b className="text-slate-100">{view.scheduled.name}</b> is next in rotation and will be asked to clean it.</> : 'The first person in the rotation will be asked to clean it.'}</p>
+        <p>{view.scheduled ? <>It will most likely go to <b className="text-slate-100">{view.scheduled.name}</b>: whoever has had the fewest turns this round and has no other task open.</> : 'It goes to whoever has had the fewest turns this round.'}</p>
         <p className="text-xs text-slate-500">Flagging an area earns no points.</p>
       </div>
     )
@@ -133,7 +132,6 @@ function Body({ p, now }: { p: Pending; now: Date }) {
           <span className="text-2xl font-black text-emerald-300">+{pts}</span>
         </div>
         <p className="text-sm">Bonuses for early cleaning and streaks are added automatically.</p>
-        {next && <p className="text-sm">Next in rotation: <b className="text-slate-100">{next.name}</b></p>}
       </div>
     )
   }
@@ -160,7 +158,7 @@ function Body({ p, now }: { p: Pending; now: Date }) {
           <p><b className="text-slate-100">{voterNames(view.dismissVoters)}</b> {votes === 1 ? 'thinks' : 'think'} it looks fine too.</p>
         )}
         {decisive ? (
-          <p>Your vote clears the flag: the {a.name} goes back to normal without advancing the rotation. Nobody earns points.</p>
+          <p>Your vote clears the flag: the {a.name} goes back to normal and nobody earns points.</p>
         ) : (
           <p>It takes <b className="text-slate-100">{needed} of the {view.rotationPreview.length}</b> people who clean the {a.name} to agree. Yours will be vote {votes + 1}.</p>
         )}
@@ -173,7 +171,7 @@ function Body({ p, now }: { p: Pending; now: Date }) {
   if (kind === 'skip') {
     return (
       <div className="space-y-2 text-slate-300">
-        <p>Your turn goes to <b className="text-slate-100">last round's lowest scorer</b>, or to the next person in rotation if they're away. The {a.name} stays flagged.</p>
+        <p>Your turn goes to <b className="text-slate-100">last round's lowest scorer</b>, or to whoever has had the fewest turns if they're away. The {a.name} stays flagged.</p>
         <p className="text-sm">It counts as their turn, not yours. No points for you, but no penalty either, and your streak is untouched.</p>
         <p className="text-xs text-slate-500">🎟️ The pass is used up. Win another round to earn a new one.</p>
       </div>
@@ -181,7 +179,7 @@ function Body({ p, now }: { p: Pending; now: Date }) {
   }
   return (
     <p className="text-slate-300">
-      Admin override: this returns the {a.name} to its normal status without advancing the rotation. Nobody earns points.
+      Admin override: this returns the {a.name} to its normal status Nobody earns points.
     </p>
   )
 }

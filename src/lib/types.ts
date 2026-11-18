@@ -165,6 +165,21 @@ export interface LeagueRound {
   forfeit_done_by_name: string | null
 }
 
+/** One person's final line in a settled round. */
+export interface RoundStanding {
+  user_id: string
+  name: string
+  avatar_url: string | null
+  points: number
+  own_turns: number
+  /** Null for legacy calendar months (no turn cap). */
+  turns_needed: number | null
+  rescues: number
+  rescued: number
+  is_champion: boolean
+  is_loser: boolean
+}
+
 export interface LeagueRoundMember {
   user_id: string
   name: string

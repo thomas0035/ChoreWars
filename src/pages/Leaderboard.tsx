@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { format } from 'date-fns'
 import { useHouse, useLeagueRound, useLeagueRounds, queryKeys } from '@/hooks/useHouse'
-import { fetchLastWeekChampion, fetchLeaderboard, markForfeitDone } from '@/lib/api'
+import { fetchLastWeekChampion, fetchLeaderboard, fetchRoundStandings, markForfeitDone } from '@/lib/api'
 import { friendlyError } from '@/lib/errors'
 import type { LeaderboardRow, LeaguePeriod, LeagueRound, LeagueRoundStatus } from '@/lib/types'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx, useToast } from '@/components/ui'
@@ -31,8 +31,8 @@ export function LeaderboardPage() {
   const lastRound = rounds.data?.[0]
   const reigning = lastRound?.champion_user_id ?? null
   const penalty = Number(settings.rescue_penalty_points ?? '5')
-  const turns = Number(settings.league_turns_per_round ?? '3')
-  const maxDays = Number(settings.league_max_round_days ?? '45')
+  const turns = Number(settings.league_turns_per_round ?? '2')
+  const maxDays = Number(settings.league_max_round_days ?? '60')
 
   return (
     <div>
@@ -120,8 +120,8 @@ export function LeaderboardPage() {
       <p className="text-xs text-slate-500 mt-6 px-1 leading-relaxed">
         The league runs in rounds. A round ends once everyone has had {turns} {turns === 1 ? 'turn' : 'turns'}, or after {maxDays} days at most.
         Only your first {turns} {turns === 1 ? 'turn counts' : 'turns count'} for you, but every rescue you do counts in full, and getting rescued costs {penalty} points.
-        The winner earns a 🎟️ Skip Pass. The lowest scorer among those who had all their turns takes the forfeit.
-        Ties go to whoever did more rescues, then whoever got there first (see the guide).
+        The winner earns a 🎟️ Skip Pass. The lowest scorer takes the forfeit, unless they were away or joined partway through.
+        Ties are explained in the guide.
         A Skip Pass hands your turn to last round's lowest scorer. A weekly champion is still crowned every week, and all-time points are kept forever.
       </p>
     </div>
@@ -206,6 +206,7 @@ function LastRoundCard({ r, meId, isAdmin }: { r: LeagueRound; meId?: string; is
             <Avatar name={r.loser_name ?? '?'} url={r.loser_avatar_url} size="md" />
             <div className="flex-1 min-w-0">
               <div className={cx('font-bold truncate', r.loser_user_id === meId && 'text-emerald-200')}>{r.loser_name}{r.loser_user_id === meId && <span className="text-slate-500 font-normal"> (you)</span>}</div>
+              {r.loser_points !== null && <div className="text-xs text-slate-400">{r.loser_points} pts · lowest score</div>}
               <div className={cx('text-sm', done ? 'text-slate-500 line-through' : 'text-rose-200')}>{r.forfeit ?? 'Forfeit'}</div>
             </div>
             {done
@@ -220,9 +221,54 @@ function LastRoundCard({ r, meId, isAdmin }: { r: LeagueRound; meId?: string; is
           )}
         </div>
       ) : r.champion_user_id && r.settle_reason !== 'legacy' ? (
-        <p className="text-xs text-slate-500 border-t border-line mt-1 pt-3 px-1">No forfeit. Fewer than two people had all their turns before the time limit.</p>
+        <p className="text-xs text-slate-500 border-t border-line mt-1 pt-3 px-1">No forfeit this round.</p>
       ) : null}
+
+      <RoundTable roundId={r.id} meId={meId} />
     </Card>
+  )
+}
+
+/** Everyone's final score and turns for a settled round, loaded when opened. */
+function RoundTable({ roundId, meId }: { roundId: string; meId?: string }) {
+  const [open, setOpen] = useState(false)
+  const q = useQuery({ queryKey: ['league', 'standings', roundId], queryFn: () => fetchRoundStandings(roundId), enabled: open, staleTime: 5 * 60_000 })
+  return (
+    <div className="border-t border-line mt-3 pt-2">
+      <button onClick={() => setOpen((o) => !o)} className="text-xs font-semibold text-emerald-300 px-1 py-1">
+        {open ? 'Hide full table' : 'Show full table'}
+      </button>
+      {open && q.isLoading && <p className="text-xs text-slate-500 px-1 py-2">Loading…</p>}
+      {open && q.error ? <ErrorBox error={q.error} retry={() => q.refetch()} /> : null}
+      {open && q.data && (
+        <>
+          <div className="divide-y divide-line">
+            {q.data.map((m) => (
+              <div key={m.user_id} className={cx('flex items-center gap-2 py-2 text-sm', m.user_id === meId && 'text-emerald-200')}>
+                <Avatar name={m.name} url={m.avatar_url} size="sm" />
+                <span className="flex-1 min-w-0 truncate font-semibold">
+                  {m.name}{m.is_champion && ' 🥇'}{m.is_loser && ' 🫠'}
+                  {(m.rescues > 0 || m.rescued > 0) && (
+                    <span className="block text-[11px] font-normal text-slate-500">
+                      {[m.rescues > 0 && `did ${m.rescues} rescue${m.rescues === 1 ? '' : 's'}`, m.rescued > 0 && `rescued ${m.rescued}×`].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                </span>
+                <span className="text-xs tabular-nums text-slate-400 shrink-0">
+                  {m.turns_needed !== null ? `${m.own_turns}/${m.turns_needed} turns` : `${m.own_turns} turn${m.own_turns === 1 ? '' : 's'}`}
+                </span>
+                <span className={cx('font-bold tabular-nums w-10 text-right', m.points < 0 && 'text-rose-300')}>{m.points}</span>
+              </div>
+            ))}
+          </div>
+          {q.data[0]?.turns_needed != null && (
+            <p className="text-[11px] text-slate-500 px-1 pt-2">
+              Only each person's first {q.data[0].turns_needed} turns count towards the score. Turns shows how many they actually had.
+            </p>
+          )}
+        </>
+      )}
+    </div>
   )
 }
 

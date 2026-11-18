@@ -26,8 +26,8 @@ export function GuidePage() {
   const early = n('early_bonus_points', 2)
   const s3 = n('streak_bonus_3', 3), s5 = n('streak_bonus_5', 5), s10 = n('streak_bonus_10', 10)
   const penalty = n('rescue_penalty_points', 5)
-  const turns = n('league_turns_per_round', 3)
-  const maxDays = n('league_max_round_days', 45)
+  const turns = n('league_turns_per_round', 2)
+  const maxDays = n('league_max_round_days', 60)
   const cooldownDefault = n('default_reactivation_cooldown_hours', 4)
   const forfeit = settings.league_forfeit ?? 'Buys snacks for the house'
   const volunteering = (settings.volunteering_enabled ?? 'true') === 'true'
@@ -45,11 +45,12 @@ export function GuidePage() {
       <div className="mt-5 space-y-2">
         <Section icon="🏠" title="The idea in 30 seconds" open>
           <ol className="list-decimal pl-5 space-y-1.5">
-            <li>Every area (kitchen, bathroom…) has its own <b>rotation</b>: a list of people who take turns.</li>
+            <li>Every area (kitchen, bathroom…) has a list of <b>people who clean it</b>.</li>
             <li>When an area looks dirty, <b>anyone</b> taps <Btn>🧹 This needs cleaning</Btn>. That's called <b>flagging</b> it.</li>
-            <li>The person whose turn it is cleans it and taps <Btn>✓ Mark as done</Btn>. They get points.</li>
-            <li>The turn moves to the next person in that area's rotation.</li>
+            <li>The turn goes to whoever on that list has had the <b>fewest turns this round</b> (counting all areas) and has no other task open. If that's a tie, whoever has waited longest.</li>
+            <li>They clean it and tap <Btn>✓ Mark as done</Btn>. They get points.</li>
           </ol>
+          <p>So nobody gets three areas at once while someone else has none, and everyone gets about the same number of turns. Each area shows who is <b>likely next</b>, but that can change until it's actually flagged.</p>
           <p>That's it. Everything else (rescues, rounds, Skip Passes) is about keeping it fair and a bit competitive.</p>
         </Section>
 
@@ -105,9 +106,9 @@ export function GuidePage() {
         <Section icon="👍" title={'"Looks fine" votes'}>
           <p>
             If an area was flagged but really doesn't need cleaning, the person whose turn it is can tap <Btn>Looks fine, not needed</Btn>.
-            That starts a vote. Other people on that area's rotation can tap <Btn>Agree, looks fine</Btn>.
+            That starts a vote. Other people who clean that area can tap <Btn>Agree, looks fine</Btn>.
           </p>
-          <p>Once <b>half</b> the rotation agrees (rounded up), the flag is cleared. Nobody gains or loses anything, and it stays the same person's turn.</p>
+          <p>Once <b>half</b> of them agree (rounded up), the flag is cleared. Nobody gains or loses anything.</p>
           <p>An admin can also clear a flag straight away.</p>
           <p>After an area is cleaned, it can't be flagged again for <b>{cooldown}</b>.</p>
         </Section>
@@ -127,18 +128,18 @@ export function GuidePage() {
           <p><b>Winner</b> (highest score): gets a <b>Skip Pass</b> and the League Champion badge, and wears the 👑 crown during the next round.</p>
           <p><b>Lowest scorer</b>: does the forfeit: <i>"{forfeit}"</i>. They tick it off in the app once it's done.</p>
           <p className="text-slate-400">
-            You can only get the forfeit if you had all {turnsWord} in that round. If you joined partway through or were away, you're safe.
-            If fewer than two people finished their turns before the time limit, there's no forfeit that round.
+            If you joined partway through or were away, you're safe. Everyone else can get it, even if the round hit the time limit before they had all {turnsWord}.
+            Tap <b>Show full table</b> under Last round on the League tab to see everyone's final score and turns.
           </p>
           <p><b>Ties.</b> On the table, equal points share a rank. For the awards:</p>
           <ul className="space-y-1.5">
             <li><b>Winner</b>: more rescues done wins; then fewer times rescued; then whoever reached the top score <b>first</b>.</li>
-            <li><b>Forfeit</b>: rescued more often loses; then fewer turns; then whoever got there <b>last</b>. If it's still a dead heat, nobody does the forfeit.</li>
+            <li><b>Forfeit</b>: rescued more often loses; then fewer turns done; then whoever got there <b>last</b>. If it's still a dead heat, nobody does the forfeit.</li>
           </ul>
         </Section>
 
         <Section icon="⚖️" title="Points for things that aren't a clean">
-          <p>Admins can <b>give or take points</b> for stuff outside the rotations: dirty dishes left out, an area not actually checked, or extra effort nobody asked for.</p>
+          <p>Admins can <b>give or take points</b> for stuff outside the normal turns: dirty dishes left out, an area not actually checked, or extra effort nobody asked for.</p>
           <ul className="space-y-1.5">
             <li>Every adjustment needs a <b>reason</b>, and everyone can see it in <b>History</b> (filter ⚖️ Adjustments) and on the person's profile.</li>
             <li>It counts the same as any other points: this round, this week and all time.</li>
@@ -150,21 +151,21 @@ export function GuidePage() {
         <Section icon="🎟️" title="Skip Pass">
           <p>When it's your turn on a flagged area (and nobody has volunteered yet), you can tap <Btn>🎟️ Use a Skip Pass</Btn> to hand the task on.</p>
           <ul className="space-y-1.5">
-            <li>It goes to whoever came <b>last in the previous round</b>. If they're away, it goes to the next person in the rotation.</li>
+            <li>It goes to whoever came <b>last in the previous round</b>. If they're away, it goes to whoever has had the fewest turns.</li>
             <li>It counts as <b>their</b> turn. You get no points, but no penalty, and your streak is safe.</li>
             <li>A task that was handed to you with a Skip Pass can't be skipped again.</li>
-            <li>Once it's cleaned, the rotation carries on as if you had done it.</li>
+            <li>A used pass counts as a turn for you, so the next task doesn't come straight back to you.</li>
           </ul>
         </Section>
 
         <Section icon="✈️" title="Going away">
           <p>Travelling? Ask an admin to mark you as <b>away</b>. While you're away:</p>
           <ul className="space-y-1.5">
-            <li>You're skipped in every rotation.</li>
+            <li>You don't get any turns.</li>
             <li>You can't lose points for a rescue.</li>
             <li>The round doesn't wait for you, and you can't get the forfeit.</li>
           </ul>
-          <p>Tell an admin when you're back so you're put back in the rotations.</p>
+          <p>Tell an admin when you're back so you start getting turns again.</p>
         </Section>
 
         <Section icon="🧺" title="Stock: shared food and who owes whom">
@@ -205,7 +206,7 @@ export function GuidePage() {
         </Section>
 
         <Section icon="🛠️" title="Mistakes and admin help">
-          <p>Tapped Mark as done by accident, or the wrong person is up? Ask an admin. They can undo the latest clean, change whose turn it is, and fix rotations.</p>
+          <p>Tapped Mark as done by accident, or the wrong person is up? Ask an admin. They can undo the latest clean, change whose turn it is, and change who cleans which area.</p>
           <p>The clock button at the top right shows everything that has been cleaned and by whom.</p>
         </Section>
       </div>

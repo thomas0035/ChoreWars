@@ -84,8 +84,8 @@ function AreasTab() {
               <div className="min-w-0 flex-1">
                 <div className="font-semibold">{a.name}</div>
                 <div className="text-xs text-slate-400 truncate">
-                  {rotationNames.length ? rotationNames.join(' → ') : 'No rotation'}
-                  {current && <> · up: {current.name}</>}
+                  {rotationNames.length ? rotationNames.join(', ') : 'No rotation'}
+                  {current && <> · {a.state.activation_state === 'passive' ? 'likely next' : 'up'}: {current.name}</>}
                 </div>
               </div>
             </Card>
@@ -136,13 +136,7 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
     setCleanedBy('')
   }, [area, open])
 
-  // Picking who cleaned it last also proposes the next person in the rotation as the current turn.
-  const pickCleanedBy = (uid: string) => {
-    setCleanedBy(uid)
-    if (!uid) return
-    const i = rotation.indexOf(uid)
-    if (i >= 0 && rotation.length > 0) setScheduled(rotation[(i + 1) % rotation.length]!)
-  }
+  const pickCleanedBy = (uid: string) => setCleanedBy(uid)
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }))
   const notInRotation = members.filter((m) => !rotation.includes(m.id))
@@ -177,7 +171,8 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
       if (lastCleanedChanged && lastCleaned) {
         await adminSetLastCleaned(id, new Date(lastCleaned).toISOString(), cleanedBy || null)
       }
-      if (scheduled && rotation.includes(scheduled)) await adminSetScheduledUser(id, scheduled)
+      // Only when the admin actually picked someone: a manual choice overrides the fair pick until the area is next cleaned.
+      if (scheduled && rotation.includes(scheduled) && scheduled !== (area?.state.current_scheduled_user_id ?? null)) await adminSetScheduledUser(id, scheduled)
     }, area ? 'Area saved' : 'Area added')
     setBusy(false)
     if (ok) onClose()
@@ -224,7 +219,8 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
           <Field label="Re-flag cooldown (days)" hint="Blank = house default"><input type="number" inputMode="decimal" step="0.5" min="0" value={form.cooldown_days} onChange={(e) => set('cooldown_days', e.target.value)} placeholder="default" /></Field>
         </div>
 
-        <SectionTitle>Rotation order</SectionTitle>
+        <SectionTitle>Who cleans this area</SectionTitle>
+        <p className="text-xs text-slate-500 px-1 -mt-1 mb-2">When it's flagged, the turn goes to whoever on this list has had the fewest turns this round (across all areas) and has no other task open. The order only breaks exact ties.</p>
         <div className="space-y-1.5">
           {rotation.length === 0 && <p className="text-sm text-slate-500 px-1">Nobody yet — add members below.</p>}
           {rotation.map((uid, i) => {
@@ -271,7 +267,7 @@ function AreaSheet({ area, open, onClose, members }: { area: Area | null; open: 
               </Field>
             </div>
             <p className="text-xs text-slate-500 -mt-2 px-1">
-              For setup or corrections. No points are awarded. Choosing a person logs it in history and moves the turn to the next in rotation.
+              For setup or corrections. No points are awarded. Choosing a person logs it in history.
             </p>
           </>
         )}
@@ -505,8 +501,8 @@ function SettingsTab() {
     streak_bonus_10: settings.streak_bonus_10 ?? '10',
     rescue_penalty_points: settings.rescue_penalty_points ?? '5',
     max_point_adjustment: settings.max_point_adjustment ?? '50',
-    league_turns_per_round: settings.league_turns_per_round ?? '3',
-    league_max_round_days: settings.league_max_round_days ?? '45',
+    league_turns_per_round: settings.league_turns_per_round ?? '2',
+    league_max_round_days: settings.league_max_round_days ?? '60',
     league_forfeit: settings.league_forfeit ?? 'Buys snacks for the house',
     public_login_directory: settings.public_login_directory ?? 'true',
   }
@@ -576,7 +572,7 @@ function SettingsTab() {
         A round ends once every member who isn't away has had this many turns, or at the max length. Only those turns count toward a member's score; rescues always count.
         Changes apply to the current round straight away, so lowering the turns can end it on the next page load.
       </p>
-      <Field label="Forfeit for the lowest scorer" hint="Shown on the League page under 'Last round' until it's marked done. Only members who had all their turns can get it. The winner gets a Skip Pass automatically.">
+      <Field label="Forfeit for the lowest scorer" hint="Shown on the League page under 'Last round' until it's marked done. Anyone who isn't away or newly joined can get it. The winner gets a Skip Pass automatically.">
         <input value={v('league_forfeit')} onChange={(e) => set('league_forfeit', e.target.value)} maxLength={120} placeholder="Buys snacks for the house" />
       </Field>
 

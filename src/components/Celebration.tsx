@@ -84,7 +84,7 @@ function CompletionBody({ r }: { r: CompletionResult }) {
       )}
       <div className="mt-5 flex justify-center gap-2 flex-wrap">
         {!rescue && r.streak > 1 && <Pill>🔥 {r.streak}-task streak</Pill>}
-        {r.next_user_name && <Pill>Next up: {r.next_user_name}</Pill>}
+        {r.next_user_name && <Pill>Likely next: {r.next_user_name}</Pill>}
       </div>
       {r.new_achievements.length > 0 && (
         <div className="mt-5 space-y-2">

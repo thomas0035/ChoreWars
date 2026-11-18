@@ -72,7 +72,7 @@ export function AreaDetailPage() {
         <div className="grid grid-cols-2 gap-2 mt-5">
           <Fact label="Last cleaned" value={s.last_cleaned_at ? timeAgo(s.last_cleaned_at, now) : 'No record'} accent={styles.text} />
           <Fact label="Usual interval" value={intervalRange(area.minimum_interval_hours, area.expected_interval_hours)} />
-          <Fact label={isActive ? 'Responsible' : 'Next up'} value={scheduled?.name ?? '—'} />
+          <Fact label={isActive ? 'Responsible' : 'Likely next'} value={scheduled?.name ?? '—'} />
           <Fact label="Points" value={`+${area.normal_points} · rescue +${area.rescue_points}`} />
         </div>
 
@@ -119,10 +119,10 @@ export function AreaDetailPage() {
         </div>
       </div>
 
-      <SectionTitle>Rotation</SectionTitle>
+      <SectionTitle>Who cleans this</SectionTitle>
       <Card className="py-3">
         {rotationPreview.length === 0 ? (
-          <p className="text-sm text-slate-500">No one in this rotation yet.</p>
+          <p className="text-sm text-slate-500">No one cleans this area yet.</p>
         ) : (
           <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-1 px-1">
             {rotationPreview.map((m, i) => (
