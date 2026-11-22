@@ -50,7 +50,7 @@ export function GuidePage() {
             <li>The turn goes to whoever on that list has had the <b>fewest turns this round</b> (counting all areas) and has no other task open. If that's a tie, whoever has waited longest.</li>
             <li>They clean it and tap <Btn>✓ Mark as done</Btn>. They get points.</li>
           </ol>
-          <p>So nobody gets three areas at once while someone else has none, and everyone gets about the same number of turns. Each area shows who is <b>likely next</b>, but that can change until it's actually flagged.</p>
+          <p>So nobody gets three areas at once while someone else has none, and everyone gets about the same number of turns. Open an area to see who'd get it <b>if it were flagged now</b>. That can change once another area is flagged first.</p>
           <p>That's it. Everything else (rescues, rounds, Skip Passes) is about keeping it fair and a bit competitive.</p>
         </Section>
 

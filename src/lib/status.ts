@@ -75,7 +75,10 @@ export interface AreaView {
   hasVotedDismiss: boolean
   /** I can cast a vote now: I'm in the rotation and either a vote is already open or it's my turn. */
   canVoteDismiss: boolean
-  rotationPreview: Member[]
+  /** Unflagged, and an admin has picked who goes next: a real "next", not the fairness guess. */
+  isPinned: boolean
+  /** Everyone who cleans this area, in the area's list order (only the last tie-break; turns go by fairness). */
+  cleaners: Member[]
 }
 
 export function describeArea(
@@ -115,9 +118,8 @@ export function describeArea(
   const canDismiss = isActive && isAdmin
 
   const sorted = [...area.rotation].sort((a, b) => a.position - b.position)
-  const idx = sorted.findIndex((r) => r.user_id === s.current_scheduled_user_id)
-  const ordered = idx >= 0 ? [...sorted.slice(idx), ...sorted.slice(0, idx)] : sorted
-  const rotationPreview = ordered.map((r) => byId.get(r.user_id)).filter((m): m is Member => Boolean(m))
+  const cleaners = sorted.map((r) => byId.get(r.user_id)).filter((m): m is Member => Boolean(m))
+  const isPinned = !isActive && Boolean(s.scheduled_pinned && scheduled)
 
   const rotationIds = new Set(sorted.map((r) => r.user_id))
   const inRotation = Boolean(meId && rotationIds.has(meId))
@@ -132,7 +134,7 @@ export function describeArea(
     area, status, isActive, scheduled, volunteer, activatedBy, isMyTurn, amVolunteer, isMyResponsibility,
     canComplete, canMarkNeeds, cooldownEndsAt, canVolunteer, graceEndsAt, volunteeringEnabled, canRelease, canDismiss,
     dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss,
-    rotationPreview,
+    isPinned, cleaners,
   }
 }
 

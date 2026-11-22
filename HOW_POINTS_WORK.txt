@@ -14,8 +14,8 @@ Each area (Kitchen, Hall, Sink, Bathrooms...) has a list of people who clean it.
 3. That person cleans it and taps "Mark as done".
 
 So nobody gets three areas at once while someone else has none, and
-everyone gets about the same number of turns. The app shows who is
-"likely next" for each area, but that can change until it's flagged.
+everyone gets about the same number of turns. Open an area to see who'd get
+it "if flagged now". That can change once another area is flagged first.
 
 If the area actually looks fine, the person whose turn it is can start a
 "Looks fine" vote. If half the people who clean that area agree, the flag is

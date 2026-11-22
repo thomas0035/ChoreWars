@@ -85,7 +85,8 @@ function AreasTab() {
                 <div className="font-semibold">{a.name}</div>
                 <div className="text-xs text-slate-400 truncate">
                   {rotationNames.length ? rotationNames.join(', ') : 'No rotation'}
-                  {current && <> · {a.state.activation_state === 'passive' ? 'likely next' : 'up'}: {current.name}</>}
+                  {current && a.state.activation_state !== 'passive' && <> · up: {current.name}</>}
+                  {current && a.state.activation_state === 'passive' && a.state.scheduled_pinned && <> · next (your pick): {current.name}</>}
                 </div>
               </div>
             </Card>

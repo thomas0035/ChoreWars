@@ -117,7 +117,11 @@ function Body({ p, now }: { p: Pending; now: Date }) {
     return (
       <div className="space-y-2 text-slate-300">
         <p>{lastCleaned}</p>
-        <p>{view.scheduled ? <>It will most likely go to <b className="text-slate-100">{view.scheduled.name}</b>: whoever has had the fewest turns this round and has no other task open.</> : 'It goes to whoever has had the fewest turns this round.'}</p>
+        <p>{view.scheduled
+          ? view.isPinned
+            ? <>It goes to <b className="text-slate-100">{view.scheduled.name}</b>, the admin's pick.</>
+            : <>It will most likely go to <b className="text-slate-100">{view.scheduled.name}</b>: whoever has had the fewest turns this round and has no other task open.</>
+          : 'It goes to whoever has had the fewest turns this round.'}</p>
         <p className="text-xs text-slate-500">Flagging an area earns no points.</p>
       </div>
     )
@@ -160,7 +164,7 @@ function Body({ p, now }: { p: Pending; now: Date }) {
         {decisive ? (
           <p>Your vote clears the flag: the {a.name} goes back to normal and nobody earns points.</p>
         ) : (
-          <p>It takes <b className="text-slate-100">{needed} of the {view.rotationPreview.length}</b> people who clean the {a.name} to agree. Yours will be vote {votes + 1}.</p>
+          <p>It takes <b className="text-slate-100">{needed} of the {view.cleaners.length}</b> people who clean the {a.name} to agree. Yours will be vote {votes + 1}.</p>
         )}
       </div>
     )

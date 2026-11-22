@@ -32,7 +32,9 @@ export function AreaDetailPage() {
     )
   }
 
-  const { area, status, isActive, scheduled, volunteer, activatedBy, isMyTurn, amVolunteer, canComplete, canMarkNeeds, cooldownEndsAt, canVolunteer, graceEndsAt, canRelease, canDismiss, rotationPreview, volunteeringEnabled, dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss } = view
+  const { area, status, isActive, scheduled, volunteer, activatedBy, isMyTurn, amVolunteer, canComplete, canMarkNeeds, cooldownEndsAt, canVolunteer, graceEndsAt, canRelease, canDismiss, cleaners, isPinned, volunteeringEnabled, dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss } = view
+  // Ring the person who actually holds this area: the one responsible now, or an admin's pick for next.
+  const holderId = isActive || isPinned ? scheduled?.id : undefined
   const s = area.state
   const styles = STATUS_STYLES[status.key]
   const canSkip = isMyTurn && s.activation_state === 'active' && !s.skip_from_user_id && (stats.data?.skip_passes ?? 0) > 0
@@ -72,7 +74,7 @@ export function AreaDetailPage() {
         <div className="grid grid-cols-2 gap-2 mt-5">
           <Fact label="Last cleaned" value={s.last_cleaned_at ? timeAgo(s.last_cleaned_at, now) : 'No record'} accent={styles.text} />
           <Fact label="Usual interval" value={intervalRange(area.minimum_interval_hours, area.expected_interval_hours)} />
-          <Fact label={isActive ? 'Responsible' : 'Likely next'} value={scheduled?.name ?? '—'} />
+          <Fact label={isActive ? 'Responsible' : isPinned ? "Next (admin's pick)" : 'If flagged now'} value={scheduled?.name ?? '—'} />
           <Fact label="Points" value={`+${area.normal_points} · rescue +${area.rescue_points}`} />
         </div>
 
@@ -101,7 +103,7 @@ export function AreaDetailPage() {
                   <span className="text-slate-600"> · </span><b>{dismissVoters.length} of {dismissVotesNeeded}</b> needed to clear the flag.
                 </p>
               ) : (
-                <p className="text-slate-400">Doesn't actually need cleaning? It takes {dismissVotesNeeded} of the {rotationPreview.length} people on this rotation to agree.</p>
+                <p className="text-slate-400">Doesn't actually need cleaning? It takes {dismissVotesNeeded} of the {cleaners.length} people who clean it to agree.</p>
               )}
               {(canVoteDismiss || hasVotedDismiss) && (
                 <div className="flex gap-2 mt-2">
@@ -121,17 +123,17 @@ export function AreaDetailPage() {
 
       <SectionTitle>Who cleans this</SectionTitle>
       <Card className="py-3">
-        {rotationPreview.length === 0 ? (
+        {cleaners.length === 0 ? (
           <p className="text-sm text-slate-500">No one cleans this area yet.</p>
         ) : (
           <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-1 px-1">
-            {rotationPreview.map((m, i) => (
+            {cleaners.map((m) => (
               <Link key={m.id} to={`/profile/${m.id}`} className={cx('flex flex-col items-center gap-1.5 min-w-[64px]', m.away && 'opacity-40')}>
-                <div className={cx('rounded-full p-[2px]', i === 0 ? 'bg-gradient-to-br from-emerald-400 to-sky-400' : 'bg-transparent')}>
-                  <Avatar name={m.name} url={m.avatar_url} size="md" className={cx(i === 0 && 'ring-2 ring-card')} />
+                <div className={cx('rounded-full p-[2px]', m.id === holderId ? 'bg-gradient-to-br from-emerald-400 to-sky-400' : 'bg-transparent')}>
+                  <Avatar name={m.name} url={m.avatar_url} size="md" className={cx(m.id === holderId && 'ring-2 ring-card')} />
                 </div>
-                <span className={cx('text-xs truncate max-w-[72px]', i === 0 ? 'font-bold text-emerald-200' : 'text-slate-400')}>
-                  {i === 0 ? (m.id === me.id ? 'You' : m.name) : m.name}
+                <span className={cx('text-xs truncate max-w-[72px]', m.id === holderId ? 'font-bold text-emerald-200' : 'text-slate-400')}>
+                  {m.id === me.id ? 'You' : m.name}
                 </span>
                 {m.away && <span className="text-[10px] text-amber-200 -mt-1">✈️ away</span>}
               </Link>

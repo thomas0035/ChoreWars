@@ -33,6 +33,8 @@ export interface AreaState {
   volunteer_claimed_at: string | null
   /** Set when the current turn was passed on with a Skip Pass: the skipper, whose rotation position resumes afterwards. */
   skip_from_user_id: string | null
+  /** An admin picked current_scheduled_user_id by hand; on an unflagged area that's a real "next", not a guess. */
+  scheduled_pinned?: boolean
   updated_at: string
 }
 
