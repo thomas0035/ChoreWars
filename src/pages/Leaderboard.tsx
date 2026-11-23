@@ -36,13 +36,13 @@ export function LeaderboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight">🏆 House League</h1>
-      <div className="mt-3 grid grid-cols-3 rounded-2xl bg-card border border-line p-1">
+      <h1 className="text-2xl font-bold">House League</h1>
+      <div className="mt-3 grid grid-cols-3 rounded-full bg-card p-1">
         {(['round', 'week', 'all'] as LeaguePeriod[]).map((p) => (
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={cx('h-10 rounded-xl text-sm font-semibold transition-colors', period === p ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-200')}
+            className={cx('h-10 rounded-full text-sm font-semibold transition-colors', period === p ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-200')}
           >
             {p === 'week' ? 'This week' : p === 'round' ? 'This round' : 'All time'}
           </button>
@@ -65,7 +65,7 @@ export function LeaderboardPage() {
           {mine && leader && (
             <Card className="mt-4 text-center py-3 text-sm">
               {mine.rank === 1 ? (
-                rows[1] && rows[1].points === mine.points ? <>You're tied for <b>#1</b>. Every clean counts.</> : <>You're <b>#1</b>{rows[1] ? <> — {mine.points - rows[1].points} points ahead of {rows[1].name}</> : ''}. Keep it up!</>
+                rows[1] && rows[1].points === mine.points ? <>You're tied for <b>#1</b>. Every clean counts.</> : <>You're <b>#1</b>{rows[1] ? <> — {mine.points - rows[1].points} points ahead of {rows[1].name}</> : ''}. Keep it up.</>
               ) : (
                 <>You are <b>#{mine.rank}</b> — {leader.points - mine.points} points behind {leader.name}.</>
               )}
@@ -82,12 +82,12 @@ export function LeaderboardPage() {
                     <Avatar name={r.name} url={r.avatar_url} size="sm" crown={r.user_id === reigning} />
                     <span className="font-semibold flex-1 truncate">
                       {r.name}
-                      {tag === 'away' && <span className="text-xs text-amber-200 font-normal"> · ✈️ away</span>}
+                      {tag === 'away' && <span className="text-xs text-amber-200 font-normal"> · away</span>}
                       {tag === 'exempt' && <span className="text-xs text-slate-500 font-normal"> · sits this round out</span>}
                     </span>
                     {r.own_turns !== null && r.turns_needed !== null
                       ? <TurnsChip have={r.own_turns} need={r.turns_needed} />
-                      : r.current_streak > 1 && <span className="text-xs text-orange-300">🔥 {r.current_streak}</span>}
+                      : r.current_streak > 1 && <span className="text-xs text-slate-400">{r.current_streak} in a row</span>}
                     <span className={cx('font-bold tabular-nums w-10 text-right', r.points < 0 && 'text-rose-300')}>{r.points}</span>
                   </Link>
                 )
@@ -105,10 +105,9 @@ export function LeaderboardPage() {
       )}
 
       {champ.data && (
-        <Card className="mt-3 flex items-center gap-3 py-3 bg-gradient-to-br from-amber-300/10 to-transparent border-amber-300/20">
-          <div className="text-2xl">👑</div>
+        <Card className="mt-3 flex items-center gap-3 py-3">
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-bold tracking-[0.18em] uppercase text-amber-200">Last week's champion</div>
+            <div className="text-xs font-medium text-amber-200">Last week's champion</div>
             <div className="font-bold truncate">{champ.data.name} <span className="text-slate-400 font-normal text-sm">· {champ.data.points} pts · week of {format(new Date(champ.data.week_start), 'd MMM')}</span></div>
           </div>
           <Avatar name={champ.data.name} url={champ.data.avatar_url} size="sm" />
@@ -120,7 +119,7 @@ export function LeaderboardPage() {
       <p className="text-xs text-slate-500 mt-6 px-1 leading-relaxed">
         The league runs in rounds. A round ends once everyone has had {turns} {turns === 1 ? 'turn' : 'turns'}, or after {maxDays} days at most.
         Only your first {turns} {turns === 1 ? 'turn counts' : 'turns count'} for you, but every rescue you do counts in full, and getting rescued costs {penalty} points.
-        The winner earns a 🎟️ Skip Pass. The lowest scorer takes the forfeit, unless they were away or joined partway through.
+        The winner earns a Skip Pass. The lowest scorer takes the forfeit, unless they were away or joined partway through.
         Ties are explained in the guide.
         A Skip Pass hands your turn to last round's lowest scorer. A weekly champion is still crowned every week, and all-time points are kept forever.
       </p>
@@ -137,7 +136,7 @@ function RoundHeader({ status }: { status: LeagueRoundStatus | null }) {
   return (
     <Card className="mt-4 py-3">
       <div className="flex items-baseline justify-between gap-2">
-        <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-emerald-300">Round {status.round_no}</div>
+        <div className="text-[13px] font-medium text-emerald-300">Round {status.round_no}</div>
         <div className="text-xs text-slate-500">since {format(new Date(status.started_at), 'd MMM')}</div>
       </div>
       <p className="text-sm mt-1">
@@ -178,9 +177,9 @@ function LastRoundCard({ r, meId, isAdmin }: { r: LeagueRound; meId?: string; is
   }
 
   return (
-    <Card className="bg-gradient-to-br from-amber-300/10 via-transparent to-rose-400/10 border-amber-300/20 py-3">
+    <Card className="py-3">
       <div className="flex items-baseline justify-between gap-2 mb-2">
-        <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-amber-200">
+        <div className="text-[13px] font-medium text-amber-200">
           {r.settle_reason === 'legacy' ? format(new Date(r.started_at), 'MMMM yyyy') : `Round ${r.round_no} · ${roundRange(r)}`}
         </div>
         {r.settle_reason === 'max_length' && <span className="text-[10px] text-slate-500 shrink-0">hit the time limit</span>}
@@ -188,11 +187,11 @@ function LastRoundCard({ r, meId, isAdmin }: { r: LeagueRound; meId?: string; is
 
       {r.champion_user_id ? (
         <Link to={`/profile/${r.champion_user_id}`} className="flex items-center gap-3 py-2">
-          <span className="text-2xl w-8 text-center">🥇</span>
+          <span className="w-8 text-center text-xs text-butter font-medium">Won</span>
           <Avatar name={r.champion_name ?? '?'} url={r.champion_avatar_url} size="md" crown />
           <div className="flex-1 min-w-0">
-            <div className={cx('font-extrabold truncate', r.champion_user_id === meId && 'text-emerald-200')}>{r.champion_name}{r.champion_user_id === meId && <span className="text-slate-500 font-normal"> (you)</span>}</div>
-            <div className="text-xs text-slate-400">{r.champion_points} pts · earned a 🎟️ Skip Pass</div>
+            <div className={cx('font-bold truncate', r.champion_user_id === meId && 'text-emerald-200')}>{r.champion_name}{r.champion_user_id === meId && <span className="text-slate-500 font-normal"> (you)</span>}</div>
+            <div className="text-xs text-slate-400">{r.champion_points} pts · earned a Skip Pass</div>
           </div>
         </Link>
       ) : (
@@ -202,7 +201,7 @@ function LastRoundCard({ r, meId, isAdmin }: { r: LeagueRound; meId?: string; is
       {r.loser_user_id ? (
         <div className="border-t border-line mt-1 pt-3">
           <div className="flex items-center gap-3">
-            <span className="text-2xl w-8 text-center">🫠</span>
+            <span className="w-8 text-center text-xs text-slate-500 font-medium">Last</span>
             <Avatar name={r.loser_name ?? '?'} url={r.loser_avatar_url} size="md" />
             <div className="flex-1 min-w-0">
               <div className={cx('font-bold truncate', r.loser_user_id === meId && 'text-emerald-200')}>{r.loser_name}{r.loser_user_id === meId && <span className="text-slate-500 font-normal"> (you)</span>}</div>
@@ -210,7 +209,7 @@ function LastRoundCard({ r, meId, isAdmin }: { r: LeagueRound; meId?: string; is
               <div className={cx('text-sm', done ? 'text-slate-500 line-through' : 'text-rose-200')}>{r.forfeit ?? 'Forfeit'}</div>
             </div>
             {done
-              ? <span className="text-xs text-emerald-300 font-semibold shrink-0">Done ✓</span>
+              ? <span className="text-xs text-emerald-300 font-semibold shrink-0">Done</span>
               : canTick && <Button variant="secondary" size="sm" loading={busy} onClick={() => tick(true)}>Mark done</Button>}
           </div>
           {done && (
@@ -247,7 +246,7 @@ function RoundTable({ roundId, meId }: { roundId: string; meId?: string }) {
               <div key={m.user_id} className={cx('flex items-center gap-2 py-2 text-sm', m.user_id === meId && 'text-emerald-200')}>
                 <Avatar name={m.name} url={m.avatar_url} size="sm" />
                 <span className="flex-1 min-w-0 truncate font-semibold">
-                  {m.name}{m.is_champion && ' 🥇'}{m.is_loser && ' 🫠'}
+                  {m.name}{m.is_champion && <span className="text-butter font-normal text-xs"> · winner</span>}{m.is_loser && <span className="text-slate-500 font-normal text-xs"> · last</span>}
                   {(m.rescues > 0 || m.rescued > 0) && (
                     <span className="block text-[11px] font-normal text-slate-500">
                       {[m.rescues > 0 && `did ${m.rescues} rescue${m.rescues === 1 ? '' : 's'}`, m.rescued > 0 && `rescued ${m.rescued}×`].filter(Boolean).join(' · ')}
@@ -284,12 +283,12 @@ function HallOfFame({ results, meId }: { results: LeagueRound[]; meId?: string }
             <div key={r.id} className="flex items-center gap-3 py-2.5 text-sm">
               <span className="w-16 text-xs text-slate-500 shrink-0">{r.settle_reason === 'legacy' ? format(new Date(r.started_at), 'MMM yy') : `Round ${r.round_no}`}</span>
               <span className="flex-1 min-w-0 truncate">
-                🥇 <b className={cx(r.champion_user_id === meId && 'text-emerald-200')}>{r.champion_name ?? '—'}</b>
+                <b className={cx(r.champion_user_id === meId && 'text-emerald-200')}>{r.champion_name ?? '—'}</b>
                 <span className="text-slate-500"> {r.champion_points}</span>
               </span>
               {r.loser_name && (
                 <span className="flex-1 min-w-0 truncate text-slate-400">
-                  🫠 {r.loser_name}{r.forfeit_done_at ? ' ✓' : ''}
+                  last: {r.loser_name}{r.forfeit_done_at ? ' (done)' : ''}
                 </span>
               )}
             </div>
@@ -301,24 +300,23 @@ function HallOfFame({ results, meId }: { results: LeagueRound[]; meId?: string }
 }
 
 function PodiumSpot({ row, tall, isMe, crown, tag }: { row: LeaderboardRow; tall: boolean; isMe: boolean; crown: boolean; tag: RoundTag }) {
-  const medal = ['🥇', '🥈', '🥉'][row.rank - 1] ?? `#${row.rank}`
   return (
     <motion.div initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: tall ? 0 : 0.1 }}>
       <Link to={`/profile/${row.user_id}`} className="flex flex-col items-center">
-        <div className={cx('rounded-full p-[3px]', tall ? 'bg-gradient-to-br from-amber-300 to-orange-400' : 'bg-card-2')}>
+        <div className={cx('rounded-full p-[3px]', tall ? 'bg-butter' : 'bg-card-2')}>
           <Avatar name={row.name} url={row.avatar_url} size={tall ? 'xl' : 'lg'} className="ring-2 ring-card" crown={crown} />
         </div>
-        <div className="text-2xl -mt-3">{medal}</div>
+        <div className={cx('relative -mt-3 h-6 min-w-6 px-1.5 rounded-full text-xs font-semibold grid place-items-center tabular-nums', tall ? 'bg-butter text-on-butter' : 'bg-card-2 text-slate-200')}>{row.rank}</div>
         <div className={cx('font-bold truncate max-w-full text-center', isMe && 'text-emerald-200')}>{row.name}</div>
-        <div className={cx('font-black tabular-nums', tall ? 'text-2xl' : 'text-lg', row.points < 0 && 'text-rose-300')}>{row.points}</div>
+        <div className={cx('font-bold tabular-nums', tall ? 'text-2xl' : 'text-lg', row.points < 0 && 'text-rose-300')}>{row.points}</div>
         {tag === 'away'
-          ? <div className="text-xs text-amber-200">✈️ away</div>
+          ? <div className="text-xs text-amber-200">away</div>
           : tag === 'exempt'
             ? <div className="text-xs text-slate-500">sits this round out</div>
             : row.own_turns !== null && row.turns_needed !== null
               ? <div className="mt-0.5"><TurnsChip have={row.own_turns} need={row.turns_needed} /></div>
-              : row.current_streak > 1 && <div className="text-xs text-orange-300">🔥 {row.current_streak} streak</div>}
-        <div className={cx('w-full rounded-t-2xl bg-card border border-line border-b-0 mt-2', tall ? 'h-16' : 'h-8')} />
+              : row.current_streak > 1 && <div className="text-xs text-slate-400">{row.current_streak} in a row</div>}
+        <div className={cx('w-full rounded-t-2xl bg-card mt-2', tall ? 'h-16' : 'h-8')} />
       </Link>
     </motion.div>
   )

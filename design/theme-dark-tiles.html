@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChoreWars: dark tiles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #2a2a28; color: #e8e6df; font: 15px/1.5 "Instrument Sans", "Segoe UI", sans-serif; padding: 40px 24px 80px; }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .page > h1 { font: 600 30px/1.1 "Bricolage Grotesque", "Segoe UI", sans-serif; letter-spacing: -.02em; }
+  .page > p { max-width: 64ch; margin-top: 8px; color: #a9a79e; }
+  .row { display: flex; flex-wrap: wrap; gap: 40px 36px; margin-top: 36px; justify-content: center; }
+  .col { width: 372px; }
+  .col h2 { font: 600 20px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -.01em; }
+  .col .tag { font: 500 12px "IBM Plex Mono", Consolas, monospace; color: #8f8d84; margin-bottom: 14px; }
+  .notes { margin-top: 14px; font-size: 14px; color: #b9b7ae; }
+  .sw { display: flex; gap: 6px; margin-top: 14px; }
+  .sw span { flex: 1; height: 44px; border-radius: 6px; border: 1px solid rgba(255,255,255,.14); font: 500 10px "IBM Plex Mono", monospace; display: flex; align-items: flex-end; padding: 4px 5px; }
+  .replay { margin-top: 12px; font: 500 12px "IBM Plex Mono", monospace; background: none; border: 1px solid #6b6a63; border-radius: 4px; padding: 6px 10px; cursor: pointer; color: #b9b7ae; }
+  .replay:hover { background: rgba(255,255,255,.06); }
+  button { font: inherit; cursor: pointer; }
+
+  .phone { width: 372px; height: 760px; border-radius: 44px; border: 9px solid #050505; overflow: hidden; position: relative; box-shadow: 0 24px 50px -22px rgba(0,0,0,.8); }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--grout); color: var(--ink); }
+  .body { flex: 1; overflow: hidden; }
+
+  /* palettes */
+  .basalt { --grout: #090908; --tile: #1B1B19; --ink: #ECEAE0; --mute: #8B897F; --accent: #D8F23A; --on-accent: #10100E; --warn: #FF7A4D; --dust: .8,.76,.66; }
+  .bottle { --grout: #050D0A; --tile: #113228; --ink: #F0ECDD; --mute: #8DA59A; --accent: #E9C46A; --on-accent: #1A1405; --warn: #FF9166; --dust: .82,.8,.7; }
+  .cobalt { --grout: #05070F; --tile: #162C78; --ink: #F3F0E7; --mute: #9DAAD6; --accent: #F3F0E7; --on-accent: #0B1437; --warn: #FFB648; --dust: .8,.8,.8; }
+
+  .top { display: flex; justify-content: space-between; padding: 22px 20px 0; font: 500 11px "IBM Plex Mono", Consolas, monospace; color: var(--mute); letter-spacing: .02em; }
+  .hello { padding: 18px 20px 0; font: 600 28px/1.05 "Bricolage Grotesque", sans-serif; letter-spacing: -.025em; }
+  .sub { padding: 6px 20px 0; font-size: 13.5px; color: var(--mute); }
+  .sub b { color: var(--ink); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 18px 14px 0; }
+
+  .tile { position: relative; border-radius: 5px; aspect-ratio: 1; padding: 12px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+    /* the glaze: a soft window reflection + bevel */
+    background: linear-gradient(128deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.03) 28%, transparent 46%), var(--tile);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.09), inset 0 -3px 0 rgba(0,0,0,.3); }
+  .tile.big { grid-column: span 2; aspect-ratio: auto; height: 196px; padding: 14px; }
+  .tile > * { position: relative; z-index: 2; }
+  .tile .meta { display: flex; justify-content: space-between; font: 500 10.5px "IBM Plex Mono", monospace; color: var(--mute); }
+  .tile .name { font: 600 17px/1.1 "Bricolage Grotesque", sans-serif; letter-spacing: -.01em; }
+  .tile.big .name { font-size: 30px; letter-spacing: -.03em; }
+  .tile .who { font-size: 12px; color: var(--ink); opacity: .8; margin-top: 3px; }
+  .tile .meta span:last-child { color: var(--ink); opacity: .7; }
+  .state { letter-spacing: .08em; text-transform: uppercase; color: var(--warn); }
+
+  /* dust film: matte base kills the gloss, then blotches and speckle on top */
+  .grime { position: absolute !important; inset: 0; z-index: 1 !important; opacity: var(--d, 0); clip-path: inset(0 0 0 0); background: var(--tile); }
+  .grime::before, .grime::after { content: ""; position: absolute; inset: 0; }
+  .grime::before { background: rgba(190,182,160,.13); }
+  .basalt .grime::after, .bottle .grime::after, .cobalt .grime::after {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.02' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .8 0 0 0 0 .76 0 0 0 0 .66 1.05 0 0 0 -.42'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 100% 100%,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .87 0 0 0 0 .78 1.3 0 0 0 -.66'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px; }
+
+  .squeegee { position: absolute !important; z-index: 3 !important; top: -8%; left: 0; width: 8px; height: 116%; background: var(--accent); border-radius: 3px; transform: translateX(-30px) rotate(4deg); opacity: 0; box-shadow: 10px 0 22px rgba(255,255,255,.22); }
+  .glint { position: absolute !important; z-index: 3 !important; inset: 0; background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.3) 50%, transparent 62%); transform: translateX(-110%); pointer-events: none; }
+  .act { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+  .btn { background: var(--accent); color: var(--on-accent); border: 0; border-radius: 4px; height: 42px; padding: 0 20px; font-weight: 600; font-size: 14.5px; }
+  .link { background: none; border: 0; color: var(--ink); opacity: .75; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+  .plus { position: absolute !important; z-index: 4 !important; right: 16px; bottom: 16px; font: 700 34px "Bricolage Grotesque", sans-serif; color: var(--accent); opacity: 0; transform: translateY(10px); letter-spacing: -.03em; }
+  .nav { display: flex; justify-content: space-around; padding: 14px 10px 24px; font-size: 12.5px; font-weight: 500; color: var(--mute); border-top: 1px solid rgba(255,255,255,.08); }
+  .nav .on { color: var(--ink); font-weight: 600; box-shadow: 0 -15px 0 -13px var(--accent); }
+
+  .done .big .grime { animation: wipe .95s cubic-bezier(.5,0,.3,1) forwards; }
+  .done .big .squeegee { animation: squeegee .95s cubic-bezier(.5,0,.3,1) forwards; }
+  .done .big .glint { animation: glint .7s .95s ease-out forwards; }
+  .done .act { opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .done .big .state { color: var(--mute); transition: color .2s .9s; }
+  .done .plus { animation: plus 1.6s 1.1s ease-out forwards; }
+  @keyframes wipe { to { clip-path: inset(0 0 0 100%); } }
+  @keyframes squeegee { 0% { transform: translateX(-30px) rotate(4deg); opacity: 1; } 96% { opacity: 1; } 100% { transform: translateX(350px) rotate(4deg); opacity: 0; } }
+  @keyframes glint { to { transform: translateX(110%); } }
+  @keyframes plus { 0% { opacity: 0; transform: translateY(10px); } 20%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>ChoreWars: Porcelain, in the dark</h1>
+  <p>Same tile-wall idea on a dark base. A clean tile is glossy and catches the light; a neglected one goes matte under a film of dust. Press "Mark clean" to see the wipe.</p>
+  <div class="row" id="row"></div>
+</div>
+
+<script>
+  const themes = [
+    { id: 'basalt', title: '1 · Basalt', tag: 'neutral black tile · rubber-glove yellow',
+      note: 'The most neutral: no hue in the surfaces at all, so the yellow action and the dust do all the talking.',
+      sw: [['#090908','grout'],['#1B1B19','tile'],['#ECEAE0','chalk','#111'],['#D8F23A','glove','#111'],['#FF7A4D','due','#111']] },
+    { id: 'bottle', title: '2 · Bottle', tag: 'deep green glaze · brass',
+      note: 'Old-pub tile green with a brass accent. Warmest and most characterful of the three.',
+      sw: [['#050D0A','grout'],['#113228','glaze'],['#F0ECDD','cream','#111'],['#E9C46A','brass','#111'],['#FF9166','due','#111']] },
+    { id: 'cobalt', title: '3 · Cobalt', tag: 'blue glaze on black grout · cream',
+      note: 'Keeps the cobalt from the light version, but as the tile itself. Boldest; buttons are plain cream.',
+      sw: [['#05070F','grout'],['#162C78','glaze'],['#F3F0E7','cream','#111'],['#9DAAD6','mute','#111'],['#FFB648','due','#111']] },
+  ];
+
+  const phone = (t) => `
+    <div class="col">
+      <h2>${t.title}</h2>
+      <div class="tag">${t.tag}</div>
+      <div class="phone"><div class="screen ${t.id}" id="${t.id}">
+        <div class="body">
+          <div class="top"><span>FLAT 4B</span><span>ROUND 6 · TURN 1 OF 2</span></div>
+          <div class="hello">Evening, Thomas.</div>
+          <div class="sub"><b>42 pts</b> this round &nbsp;·&nbsp; <b>2nd</b> &nbsp;·&nbsp; <b>5</b> in a row</div>
+          <div class="grid">
+            <div class="tile big" style="--d:1">
+              <div class="grime"></div><div class="squeegee"></div><div class="glint"></div>
+              <div class="meta"><span class="state" data-done="Clean · just now">Your turn</span><span data-done="0d">4d</span></div>
+              <div>
+                <div class="name">Kitchen</div>
+                <div class="who" data-done="Wiped by you at 18:42">Flagged by Priya, 2h ago</div>
+                <div class="act"><button class="btn" onclick="done('${t.id}')">Mark clean</button><button class="link">Looks fine to me</button></div>
+              </div>
+              <div class="plus">+10</div>
+            </div>
+            <div class="tile"><div class="grime"></div><div class="meta"><span>Clean</span><span>1d</span></div><div><div class="name">Bathroom</div></div></div>
+            <div class="tile" style="--d:.45"><div class="grime"></div><div class="meta"><span>Getting dusty</span><span>3d</span></div><div><div class="name">Living room</div></div></div>
+            <div class="tile" style="--d:.85"><div class="grime"></div><div class="meta"><span class="state">Arjun's turn</span><span>6d</span></div><div><div class="name">Balcony</div><div class="who">Flagged 5h ago</div></div></div>
+            <div class="tile" style="--d:.15"><div class="grime"></div><div class="meta"><span>Clean</span><span>2d</span></div><div><div class="name">Hallway</div></div></div>
+          </div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('${t.id}')">reset</button>
+      <div class="sw">${t.sw.map(([c, n, fg]) => `<span style="background:${c};color:${fg || '#fff'}">${n}</span>`).join('')}</div>
+      <p class="notes">${t.note}</p>
+    </div>`;
+  document.getElementById('row').innerHTML = themes.map(phone).join('');
+
+  const timers = {};
+  function done(id) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('done')) return;
+    el.classList.add('done');
+    timers[id] = setTimeout(() => el.querySelectorAll('[data-done]').forEach(n => { n.dataset.orig = n.innerHTML; n.innerHTML = n.dataset.done; }), 850);
+  }
+  function reset(id) {
+    clearTimeout(timers[id]);
+    const el = document.getElementById(id);
+    el.classList.remove('done');
+    el.querySelectorAll('[data-orig]').forEach(n => { n.innerHTML = n.dataset.orig; delete n.dataset.orig; });
+  }
+  if (location.hash === '#done') themes.forEach(t => done(t.id));
+</script>
+</body>
+</html>

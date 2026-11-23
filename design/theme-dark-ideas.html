@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChoreWars: dark ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #2a2a28; color: #e8e6df; font: 15px/1.5 "Figtree", "Segoe UI", sans-serif; padding: 40px 24px 80px; }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .page > h1 { font: 600 30px/1.1 "Schibsted Grotesk", "Segoe UI", sans-serif; letter-spacing: -.02em; }
+  .page > p { max-width: 64ch; margin-top: 8px; color: #a9a79e; }
+  .row { display: flex; flex-wrap: wrap; gap: 40px 36px; margin-top: 36px; justify-content: center; }
+  .col { width: 372px; }
+  .col h2 { font: 600 20px/1.2 "Schibsted Grotesk", sans-serif; letter-spacing: -.01em; }
+  .col .tag { font: 500 12px "IBM Plex Mono", Consolas, monospace; color: #8f8d84; margin-bottom: 14px; }
+  .notes { margin-top: 14px; font-size: 14px; color: #b9b7ae; }
+  .notes li { margin: 5px 0 5px 18px; }
+  .sw { display: flex; gap: 6px; margin-top: 14px; }
+  .sw span { flex: 1; height: 44px; border-radius: 6px; border: 1px solid rgba(255,255,255,.14); font: 500 10px "IBM Plex Mono", monospace; display: flex; align-items: flex-end; padding: 4px 5px; color: #111; }
+  .replay { margin-top: 12px; font: 500 12px "IBM Plex Mono", monospace; background: none; border: 1px solid #6b6a63; border-radius: 4px; padding: 6px 10px; cursor: pointer; color: #b9b7ae; }
+  button { font: inherit; cursor: pointer; }
+  .phone { width: 372px; height: 760px; border-radius: 44px; border: 9px solid #050505; overflow: hidden; position: relative; box-shadow: 0 24px 50px -22px rgba(0,0,0,.8); }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .body { flex: 1; overflow: hidden; }
+  .mono { font-family: "IBM Plex Mono", Consolas, monospace; }
+
+  /* ───────────── A · POLISH ───────────── */
+  .A { background: #0D0D0C; color: #F4F1E8; font-family: "Schibsted Grotesk", "Segoe UI", sans-serif; --dull: #55534D; --due: #FF8660; }
+  .A .top { display: flex; justify-content: space-between; padding: 24px 22px 0; font-size: 12.5px; color: #86837A; }
+  .A .hero { padding: 24px 22px 0; }
+  .A .kick { font-size: 13px; font-weight: 600; color: var(--due); }
+  .A .word { display: inline-block; font-weight: 700; font-size: 66px; line-height: 1; letter-spacing: -.045em; margin: 4px 0 8px -3px; color: transparent;
+    background: linear-gradient(100deg, #F4F1E8 0 44%, #fff 50%, var(--dull) 56% 100%) 100% 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; }
+  .A .dek { font-size: 14px; color: #86837A; max-width: 30ch; min-height: 42px; }
+  .A .act { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
+  .A .btn { background: #F4F1E8; color: #0D0D0C; border: 0; border-radius: 999px; height: 44px; padding: 0 22px; font-weight: 600; font-size: 14.5px; }
+  .A .link { background: none; border: 0; color: #B5B2A8; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; }
+  .A h3 { margin: 24px 22px 4px; font-size: 12.5px; font-weight: 500; color: #86837A; display: flex; justify-content: space-between; }
+  .A .li { display: flex; align-items: baseline; gap: 10px; margin: 0 22px; padding: 9px 0; border-top: 1px solid #1E1E1B; }
+  .A .li .n { flex: 1; font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
+  .A .li .m { font-size: 12.5px; color: #86837A; }
+  .A .li .m.due { color: var(--due); }
+  .A .f1 { color: #F4F1E8; } .A .f2 { color: #B5B2A8; } .A .f3 { color: #7E7B73; } .A .f4 { color: var(--dull); }
+  .A .lg { display: flex; margin: 0 22px; padding: 7px 0; border-top: 1px solid #1E1E1B; font-size: 14.5px; color: #B5B2A8; }
+  .A .lg span:nth-child(2) { flex: 1; } .A .lg span:first-child { width: 22px; color: #86837A; } .A .lg.me { color: #F4F1E8; font-weight: 600; }
+  .A .nav { display: flex; justify-content: space-around; padding: 14px 10px 24px; font-size: 13px; font-weight: 500; color: #6E6B64; border-top: 1px solid #1E1E1B; }
+  .A .nav .on { color: #F4F1E8; }
+  .A.done .word { background-position: 0 0; transition: background-position 1.1s cubic-bezier(.45,0,.2,1); }
+  .A.done .kick { color: #86837A; transition: color .3s .8s; }
+  .A.done .act { opacity: 0; pointer-events: none; transition: opacity .2s; }
+
+  /* ───────────── B · LIGHTS ON ───────────── */
+  .B { background: #110F0D; color: #F3EDE2; font-family: "Figtree", "Segoe UI", sans-serif; --lit: #FFC56B; --line: #2A2622; --mute: #948B7E; --due: #FF8660; }
+  .B .top { display: flex; justify-content: space-between; padding: 24px 22px 0; font-size: 12.5px; color: var(--mute); }
+  .B .house { display: block; margin: 20px auto 0; }
+  .B .house .wall { fill: none; stroke: #4A433A; stroke-width: 1.5; stroke-linejoin: round; }
+  .B .house rect.w { stroke-width: 1.5; }
+  .B .house .lit { fill: var(--lit); stroke: var(--lit); }
+  .B .house .dim { fill: #6E5631; stroke: #6E5631; }
+  .B .house .off { fill: #110F0D; stroke: #4A433A; }
+  .B .house text { font: 500 8px "IBM Plex Mono", monospace; text-anchor: middle; letter-spacing: .08em; }
+  .B .house .lit + text { fill: #3A2A0C; } .B .house .dim + text { fill: #D9C7A6; } .B .house .off + text { fill: #7A7166; }
+  .B .hl { padding: 20px 22px 0; font: 400 30px/1.08 "Fraunces", Georgia, serif; letter-spacing: -.02em; }
+  .B .dek { padding: 8px 22px 0; font-size: 14px; color: var(--mute); }
+  .B .act { display: flex; align-items: center; gap: 16px; padding: 16px 22px 0; }
+  .B .btn { background: var(--lit); color: #2A1D05; border: 0; border-radius: 10px; height: 44px; padding: 0 20px; font-weight: 600; font-size: 14.5px; }
+  .B .link { background: none; border: 0; color: #C9C0B2; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; }
+  .B h3 { margin: 26px 22px 4px; font-size: 12.5px; font-weight: 500; color: var(--mute); }
+  .B .li { display: flex; align-items: center; gap: 12px; margin: 0 22px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15.5px; font-weight: 500; }
+  .B .li i { width: 11px; height: 14px; border-radius: 2px; border: 1.5px solid #4A433A; flex: none; }
+  .B .li i.lit { background: var(--lit); border-color: var(--lit); } .B .li i.dim { background: #6E5631; border-color: #6E5631; }
+  .B .li .n { flex: 1; } .B .li .m { font-size: 12.5px; font-weight: 400; color: var(--mute); } .B .li .m.due { color: var(--due); }
+  .B .nav { display: flex; justify-content: space-around; padding: 14px 10px 24px; font-size: 13px; font-weight: 500; color: #6F675C; border-top: 1px solid var(--line); }
+  .B .nav .on { color: var(--lit); }
+  .B.done #Bwin { animation: flick 1s .15s both; }
+  .B.done #Bwin + text { fill: #3A2A0C; transition: fill 0s 1s; }
+  .B.done #Bdot { background: var(--lit); border-color: var(--lit); transition: all 0s 1s; }
+  .B.done .act { opacity: 0; pointer-events: none; transition: opacity .2s; }
+  @keyframes flick { 0% { fill: #110F0D; stroke: #4A433A; } 12% { fill: #FFC56B; } 20% { fill: #2b2210; } 34% { fill: #FFC56B; } 42% { fill: #57431f; } 60%, 100% { fill: #FFC56B; stroke: #FFC56B; } }
+
+  /* ───────────── C · SUDS ───────────── */
+  .C { background: #121314; color: #EEF1F2; font-family: "DM Sans", "Segoe UI", sans-serif; --card: #1C1E20; --mute: #8C9296; --acc: #BDE4F4; --due: #FFD76A; }
+  .C .top { display: flex; justify-content: space-between; align-items: baseline; padding: 24px 20px 0; }
+  .C .top b { font-size: 22px; font-weight: 700; letter-spacing: -.02em; } .C .top span { font-size: 12.5px; color: var(--mute); }
+  .C .hero { position: relative; margin: 18px 14px 0; padding: 18px; background: var(--card); border-radius: 18px; overflow: hidden; }
+  .C .kick { font-size: 12.5px; font-weight: 600; color: var(--due); }
+  .C .hero .n { font-size: 32px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-top: 2px; }
+  .C .dek { font-size: 13.5px; color: var(--mute); margin-top: 4px; min-height: 40px; }
+  .C .act { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+  .C .btn { background: var(--acc); color: #0E2530; border: 0; border-radius: 999px; height: 44px; padding: 0 22px; font-weight: 700; font-size: 14.5px; }
+  .C .link { background: none; border: 0; color: #C4CACD; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; }
+  .C .foam { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .C .foam i { position: absolute; border-radius: 50%; transform: scale(0); background: radial-gradient(circle at 34% 30%, #fff 0 12%, #E9F3F8 45%, #C6DCE8 100%); box-shadow: inset -2px -3px 6px rgba(120,160,180,.35); }
+  .C h3 { margin: 22px 20px 8px; font-size: 12.5px; font-weight: 500; color: var(--mute); }
+  .C .li { display: flex; align-items: center; gap: 10px; margin: 6px 14px 0; padding: 12px 16px; background: var(--card); border-radius: 14px; font-size: 15.5px; font-weight: 600; }
+  .C .li .n { flex: 1; } .C .li .m { font-size: 12.5px; font-weight: 400; color: var(--mute); } .C .li .m.due { color: var(--due); }
+  .C .lg { display: flex; margin: 0 20px; padding: 6px 0; font-size: 14px; color: #C4CACD; }
+  .C .lg span:nth-child(2) { flex: 1; } .C .lg span:first-child { width: 22px; color: var(--mute); } .C .lg.me { color: #fff; font-weight: 700; }
+  .C .nav { display: flex; justify-content: space-around; padding: 14px 10px 24px; font-size: 13px; font-weight: 500; color: #6C7276; }
+  .C .nav .on { color: var(--acc); font-weight: 700; }
+  .C.done .foam i { animation: bub .45s var(--dl) cubic-bezier(.2,.8,.3,1.2) forwards; }
+  .C.done .foam { animation: rinse .7s 1.15s cubic-bezier(.5,0,.4,1) forwards; }
+  .C.done .kick { color: var(--acc); transition: color 0s .9s; }
+  .C.done .act { visibility: hidden; transition: visibility 0s .9s; }
+  @keyframes bub { to { transform: scale(1); } }
+  @keyframes rinse { to { clip-path: inset(100% 0 0 0); transform: translateY(14px); } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>ChoreWars: three dark directions</h1>
+  <p>All dark, all list-based and compact, no emoji. Each one shows "clean vs. not clean" a different way. Press the main button to see the done moment.</p>
+  <div class="row">
+
+    <!-- A -->
+    <div class="col">
+      <h2>A · Polish</h2>
+      <div class="tag">type only · brightness is the status</div>
+      <div class="phone"><div class="screen A" id="A">
+        <div class="body">
+          <div class="top"><span>Flat 4B</span><span>Round 6 · 42 pts · 2nd</span></div>
+          <div class="hero">
+            <div class="kick" data-done="Clean, just now">Your turn</div>
+            <div class="word">Kitchen</div>
+            <div class="dek" data-done="Ten points to you. Arjun is up next.">Four days since it last shone. Priya flagged it 2h ago.</div>
+            <div class="act"><button class="btn" onclick="done('A')">Mark clean</button><button class="link">Looks fine to me</button></div>
+          </div>
+          <h3><span>The house</span><span>last cleaned</span></h3>
+          <div class="li"><span class="n f1">Bathroom</span><span class="m">1d</span></div>
+          <div class="li"><span class="n f2">Hallway</span><span class="m">2d</span></div>
+          <div class="li"><span class="n f3">Living room</span><span class="m">3d</span></div>
+          <div class="li"><span class="n f4">Balcony</span><span class="m due">Arjun's turn · 6d</span></div>
+          <h3><span>This round</span><span>pts</span></h3>
+          <div class="lg"><span>1</span><span>Priya</span><span>58</span></div>
+          <div class="lg me"><span>2</span><span>Thomas</span><span data-done="52">42</span></div>
+          <div class="lg"><span>3</span><span>Arjun</span><span>31</span></div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('A')">reset</button>
+      <div class="sw"><span style="background:#0D0D0C;color:#fff">black</span><span style="background:#55534D;color:#fff">dull</span><span style="background:#B5B2A8">worn</span><span style="background:#F4F1E8">polished</span><span style="background:#FF8660">due</span></div>
+      <ul class="notes">
+        <li>No cards, no icons, no badges. An area's name is bright when clean and fades to dull grey as the days pass.</li>
+        <li><b>Done:</b> a shine sweeps across the word and it comes up polished.</li>
+        <li>Only colour on screen: coral for "someone's turn".</li>
+      </ul>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <h2>B · Lights On</h2>
+      <div class="tag">the flat at night · clean rooms are lit</div>
+      <div class="phone"><div class="screen B" id="B">
+        <div class="body">
+          <div class="top"><span>Flat 4B</span><span>Round 6 · 42 pts · 2nd</span></div>
+          <svg class="house" width="300" height="136" viewBox="0 0 300 136">
+            <path class="wall" d="M6 52 L150 6 L294 52"/>
+            <path class="wall" d="M22 47 V134 H278 V47"/>
+            <rect class="w off" id="Bwin" x="42" y="62" width="50" height="26" rx="2"/><text x="67" y="78">KIT</text>
+            <rect class="w lit" x="125" y="62" width="50" height="26" rx="2"/><text x="150" y="78">BTH</text>
+            <rect class="w dim" x="208" y="62" width="50" height="26" rx="2"/><text x="233" y="78">LVG</text>
+            <rect class="w off" x="42" y="100" width="50" height="26" rx="2"/><text x="67" y="116">BAL</text>
+            <rect class="w lit" x="125" y="100" width="50" height="26" rx="2"/><text x="150" y="116">HAL</text>
+            <path class="wall" d="M220 134 V102 H246 V134"/>
+          </svg>
+          <div class="hl" data-done="One light is out.">Two lights are out.</div>
+          <div class="dek" data-done="Kitchen's back on. Ten points to you.">The kitchen is yours. Priya flagged it 2h ago.</div>
+          <div class="act"><button class="btn" onclick="done('B')">Mark kitchen clean</button><button class="link">Looks fine</button></div>
+          <h3>The house</h3>
+          <div class="li"><i id="Bdot"></i><span class="n">Kitchen</span><span class="m due" data-done="just now">Your turn · 4d</span></div>
+          <div class="li"><i></i><span class="n">Balcony</span><span class="m due">Arjun's turn · 6d</span></div>
+          <div class="li"><i class="dim"></i><span class="n">Living room</span><span class="m">3d</span></div>
+          <div class="li"><i class="lit"></i><span class="n">Hallway</span><span class="m">2d</span></div>
+          <div class="li"><i class="lit"></i><span class="n">Bathroom</span><span class="m">1d</span></div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('B')">reset</button>
+      <div class="sw"><span style="background:#110F0D;color:#fff">night</span><span style="background:#4A433A;color:#fff">brick</span><span style="background:#6E5631;color:#fff">dim</span><span style="background:#FFC56B">lit</span><span style="background:#FF8660">due</span></div>
+      <ul class="notes">
+        <li>A small line drawing of the flat sits at the top. Clean rooms have the light on, neglected ones dim, flagged ones go dark.</li>
+        <li><b>Done:</b> the room's window flickers on like a tube light.</li>
+        <li>The goal becomes obvious without any explanation: keep every light on.</li>
+      </ul>
+    </div>
+
+    <!-- C -->
+    <div class="col">
+      <h2>C · Suds</h2>
+      <div class="tag">soft and friendly · the playful one</div>
+      <div class="phone"><div class="screen C" id="C">
+        <div class="body">
+          <div class="top"><b>Flat 4B</b><span>Round 6 · 42 pts · 2nd</span></div>
+          <div class="hero">
+            <div class="kick" data-done="Clean, just now">Your turn</div>
+            <div class="n">Kitchen</div>
+            <div class="dek" data-done="Ten points to you. Arjun is up next.">Priya flagged it 2h ago. Last cleaned 4 days ago.</div>
+            <div class="act"><button class="btn" onclick="done('C')">Mark clean</button><button class="link">Looks fine to me</button></div>
+            <div class="foam" id="foam"></div>
+          </div>
+          <h3>The house</h3>
+          <div class="li"><span class="n">Balcony</span><span class="m due">Arjun's turn · 6d</span></div>
+          <div class="li"><span class="n">Living room</span><span class="m">3d</span></div>
+          <div class="li"><span class="n">Hallway</span><span class="m">2d</span></div>
+          <div class="li"><span class="n">Bathroom</span><span class="m">1d</span></div>
+          <h3>This round</h3>
+          <div class="lg"><span>1</span><span>Priya</span><span>58</span></div>
+          <div class="lg me"><span>2</span><span>Thomas</span><span data-done="52">42</span></div>
+          <div class="lg"><span>3</span><span>Arjun</span><span>31</span></div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('C')">reset</button>
+      <div class="sw"><span style="background:#121314;color:#fff">charcoal</span><span style="background:#1C1E20;color:#fff">card</span><span style="background:#EEF1F2">foam</span><span style="background:#BDE4F4">water</span><span style="background:#FFD76A">due</span></div>
+      <ul class="notes">
+        <li>Closest in structure to what you have now (rounded cards), just stripped back: neutral charcoal, one pale-water accent.</li>
+        <li><b>Done:</b> the card lathers up with soap bubbles, then rinses clean.</li>
+        <li>The easiest to build; the animation carries all the personality.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  // foam bubbles for C (seeded so it looks the same each time)
+  (function () {
+    let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    const f = document.getElementById('foam'); let h = '';
+    for (let i = 0; i < 130; i++) {
+      const d = 20 + r() * 34, x = r() * 110 - 8, y = r() * 112 - 8;
+      h += `<i style="width:${d}px;height:${d}px;left:calc(${x}% - ${d / 2}px);top:calc(${y}% - ${d / 2}px);--dl:${((100 - y) * 5 + r() * 160).toFixed(0)}ms"></i>`;
+    }
+    f.innerHTML = h;
+  })();
+
+  const timers = {}, swap = { A: 700, B: 1000, C: 950 };
+  function done(id) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('done')) return;
+    el.classList.add('done');
+    timers[id] = setTimeout(() => el.querySelectorAll('[data-done]').forEach(n => { n.dataset.orig = n.innerHTML; n.innerHTML = n.dataset.done; if (n.classList.contains('due')) n.classList.replace('due', 'was-due'); }), swap[id]);
+  }
+  function reset(id) {
+    clearTimeout(timers[id]);
+    const el = document.getElementById(id);
+    el.classList.remove('done');
+    el.querySelectorAll('[data-orig]').forEach(n => { n.innerHTML = n.dataset.orig; delete n.dataset.orig; if (n.classList.contains('was-due')) n.classList.replace('was-due', 'due'); });
+  }
+  if (location.hash === '#done') ['A', 'B', 'C'].forEach(done);
+  if (location.hash === '#mid') { ['A', 'B', 'C'].forEach(done); }
+</script>
+</body>
+</html>

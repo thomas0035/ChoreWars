@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'ChoreWars',
         short_name: 'ChoreWars',
         description: 'Shared house cleaning rotations, volunteering and friendly competition.',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        theme_color: '#0c0c0b',
+        background_color: '#0c0c0b',
         display: 'standalone',
         start_url: '/',
         icons: [

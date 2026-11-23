@@ -1,18 +1,20 @@
 import { useCallback, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { claimVolunteer, completeCleaning, dismissActivation, markNeedsCleaning, releaseVolunteer, retractDismissVote, spendSkipPass, voteDismiss } from '@/lib/api'
+import { claimVolunteer, dismissActivation, markNeedsCleaning, releaseVolunteer, retractDismissVote, spendSkipPass, voteDismiss } from '@/lib/api'
 import { friendlyError } from '@/lib/errors'
 import { timeAgo } from '@/lib/format'
 import { voterNames, type AreaView } from '@/lib/status'
 import { Button, Sheet, useToast } from '@/components/ui'
 import { useCelebration } from '@/components/Celebration'
 
-export type ActionKind = 'mark' | 'complete' | 'volunteer' | 'release' | 'dismiss' | 'vote_dismiss' | 'unvote_dismiss' | 'skip'
+export type ActionKind = 'mark' | 'volunteer' | 'release' | 'dismiss' | 'vote_dismiss' | 'unvote_dismiss' | 'skip'
 
 interface Pending { kind: ActionKind; view: AreaView }
 
 /**
- * Owns the confirm-sheet + mutation flow for all area actions.
+ * Owns the confirm-sheet + mutation flow for area actions. Completing an area is not here:
+ * that is confirmed by the slide gesture itself (see components/SlideToClean).
+ *
  * Usage: const { request, sheet } = useAreaActions(); ...; {sheet}
  */
 export function useAreaActions(now: Date) {
@@ -33,10 +35,7 @@ export function useAreaActions(now: Date) {
     try {
       if (kind === 'mark') {
         const r = await markNeedsCleaning(id)
-        toast.show(`${r.area_icon} ${r.area_name} needs cleaning — ${r.scheduled_user_name}'s turn.`, 'success')
-      } else if (kind === 'complete') {
-        const r = await completeCleaning(id)
-        celebrate({ kind: 'completion', result: r })
+        toast.show(`${r.area_name} needs cleaning. ${r.scheduled_user_name}'s turn.`, 'success')
       } else if (kind === 'volunteer') {
         const r = await claimVolunteer(id)
         celebrate({ kind: 'volunteer', areaName: r.area_name, areaIcon: r.area_icon, scheduledName: r.scheduled_user_name })
@@ -49,15 +48,15 @@ export function useAreaActions(now: Date) {
       } else if (kind === 'vote_dismiss') {
         const r = await voteDismiss(id)
         if (r.dismissed) toast.show(`${view.area.name} marked as not needed.`, 'success')
-        else toast.show(`Noted — ${r.votes} of ${r.needed} needed to clear the ${view.area.name}.`)
+        else toast.show(`Noted. ${r.votes} of ${r.needed} needed to clear the ${view.area.name}.`)
       } else if (kind === 'unvote_dismiss') {
         await retractDismissVote(id)
         toast.show('Your vote was withdrawn.')
       } else if (kind === 'skip') {
         const r = await spendSkipPass(id)
         toast.show(r.reason === 'lowest_last_round'
-          ? `🎟️ Skipped. ${r.next_user_name}, last round's lowest scorer, is up for the ${r.area_name}.`
-          : `🎟️ Skipped. ${r.next_user_name} is up for the ${r.area_name}.`, 'success')
+          ? `Skipped. ${r.next_user_name}, last round's lowest scorer, is up for the ${r.area_name}.`
+          : `Skipped. ${r.next_user_name} is up for the ${r.area_name}.`, 'success')
       }
       setPending(null)
     } catch (e) {
@@ -69,7 +68,7 @@ export function useAreaActions(now: Date) {
   }
 
   const kind = pending?.kind
-  const variant = kind === 'complete' ? 'hero' : kind === 'dismiss' || kind === 'release' || kind === 'unvote_dismiss' ? 'danger' : kind === 'skip' ? 'secondary' : 'primary'
+  const variant = kind === 'dismiss' || kind === 'release' || kind === 'unvote_dismiss' ? 'danger' : kind === 'skip' ? 'secondary' : 'primary'
 
   const sheet = (
     <Sheet open={pending !== null} onClose={close} title={pending ? TITLES[pending.kind](pending.view) : undefined}>
@@ -88,7 +87,6 @@ export function useAreaActions(now: Date) {
 
 const TITLES: Record<ActionKind, (v: AreaView) => ReactNode> = {
   mark: (v) => `Does the ${v.area.name} need cleaning?`,
-  complete: (v) => `Mark ${v.area.name} as cleaned?`,
   volunteer: (v) => `Volunteer to clean the ${v.area.name}?`,
   release: () => 'Cancel your volunteer claim?',
   dismiss: (v) => `Clear the flag on the ${v.area.name}?`,
@@ -99,7 +97,6 @@ const TITLES: Record<ActionKind, (v: AreaView) => ReactNode> = {
 
 const CONFIRM: Record<ActionKind, string> = {
   mark: 'Yes, mark as needed',
-  complete: 'Complete',
   volunteer: "I'll do it",
   release: 'Cancel claim',
   dismiss: 'Clear flag',
@@ -123,19 +120,6 @@ function Body({ p, now }: { p: Pending; now: Date }) {
             : <>It will most likely go to <b className="text-slate-100">{view.scheduled.name}</b>: whoever has had the fewest turns this round and has no other task open.</>
           : 'It goes to whoever has had the fewest turns this round.'}</p>
         <p className="text-xs text-slate-500">Flagging an area earns no points.</p>
-      </div>
-    )
-  }
-  if (kind === 'complete') {
-    const rescue = view.amVolunteer && !view.isMyTurn
-    const pts = rescue ? a.rescue_points : a.normal_points
-    return (
-      <div className="space-y-3 text-slate-300">
-        <div className="rounded-2xl bg-card-2 border border-line p-4 flex items-center justify-between">
-          <span className="font-semibold text-slate-100">{rescue ? 'Rescue points' : 'Points'}</span>
-          <span className="text-2xl font-black text-emerald-300">+{pts}</span>
-        </div>
-        <p className="text-sm">Bonuses for early cleaning and streaks are added automatically.</p>
       </div>
     )
   }
@@ -177,13 +161,13 @@ function Body({ p, now }: { p: Pending; now: Date }) {
       <div className="space-y-2 text-slate-300">
         <p>Your turn goes to <b className="text-slate-100">last round's lowest scorer</b>, or to whoever has had the fewest turns if they're away. The {a.name} stays flagged.</p>
         <p className="text-sm">It counts as their turn, not yours. No points for you, but no penalty either, and your streak is untouched.</p>
-        <p className="text-xs text-slate-500">🎟️ The pass is used up. Win another round to earn a new one.</p>
+        <p className="text-xs text-slate-500">The pass is used up. Win another round to earn a new one.</p>
       </div>
     )
   }
   return (
     <p className="text-slate-300">
-      Admin override: this returns the {a.name} to its normal status Nobody earns points.
+      Admin override: this returns the {a.name} to its normal status. Nobody earns points.
     </p>
   )
 }

@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useAreaViews, useReigningChampion, queryKeys } from '@/hooks/useHouse'
 import { useAreaActions } from '@/hooks/useAreaActions'
 import { fetchLeaderboard, fetchUserStats } from '@/lib/api'
-import { randomGreeting, timeAgo, timeUntil } from '@/lib/format'
+import { ordinal, randomGreeting, timeAgo, timeUntil } from '@/lib/format'
 import { voterNames, type AreaView } from '@/lib/status'
 import { AreaRow } from '@/components/AreaCard'
+import { DoneFlood, SlideToClean, useSlideComplete } from '@/components/SlideToClean'
+import type { CompletionResult } from '@/lib/types'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx } from '@/components/ui'
 
 export function HomePage() {
@@ -18,68 +20,89 @@ export function HomePage() {
   const lb = useQuery({ queryKey: queryKeys.leaderboard('round'), queryFn: () => fetchLeaderboard('round'), enabled: Boolean(me) })
   const { request, sheet } = useAreaActions(now)
   const champ = useReigningChampion()
+  const slide = useSlideComplete()
 
   if (isLoading) return <PageLoading />
   if (error) return <ErrorBox error={error} />
   if (!me) return null
 
-  const mine = views.filter((v) => v.isMyResponsibility)
-  const others = views.filter((v) => v.isActive && !v.isMyResponsibility)
+  // A just-finished task is no longer "mine" once the data refreshes, so keep its card around
+  // (from the snapshot) while the finished state plays.
+  const finished = slide.done
+  const mine = [
+    ...(finished && !views.some((v) => v.isMyResponsibility && v.area.id === finished.view.area.id) ? [finished.view] : []),
+    ...views.filter((v) => v.isMyResponsibility),
+  ]
+  const others = views.filter((v) => v.isActive && !v.isMyResponsibility && v.area.id !== finished?.view.area.id)
+  const calm = views.filter((v) => !v.isActive && v.area.id !== finished?.view.area.id)
   const top3 = (lb.data ?? []).slice(0, 3)
+  const st = stats.data
 
   return (
     <div>
-      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight">{hello || ' '}</h1>
-        <div className="flex justify-center gap-2 mt-3 flex-nowrap">
-          <Stat icon="⭐" label="round" value={stats.data ? `${stats.data.round_points} pts` : '—'} />
-          <Stat icon="🔥" label="streak" value={stats.data ? `${stats.data.current_streak}` : '—'} />
-          <Stat icon="🏆" label="rank" value={stats.data?.round_rank ? `#${stats.data.round_rank}` : '—'} />
-        </div>
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-[26px] font-bold leading-tight">{hello || ' '}</h1>
+        <p className="text-[13.5px] text-slate-400 mt-1.5">
+          <b className="text-slate-100 font-semibold tabular-nums">{st ? `${st.round_points} pts` : '—'}</b> this round
+          <span className="text-slate-600"> · </span>
+          <b className="text-slate-100 font-semibold">{st?.round_rank ? ordinal(st.round_rank) : '—'}</b>
+          <span className="text-slate-600"> · </span>
+          <b className="text-slate-100 font-semibold tabular-nums">{st ? st.current_streak : '—'}</b> in a row
+        </p>
       </motion.div>
 
       <SectionTitle>Your turn</SectionTitle>
       {mine.length === 0 ? (
-        <Card className="text-center py-7">
-          <div className="text-4xl">🎉</div>
-          <p className="font-bold text-lg mt-2">You're all caught up!</p>
-          <p className="text-sm text-slate-400 mt-1">You don't have an active cleaning task right now.</p>
+        <Card className="py-6">
+          <p className="font-display font-semibold text-lg">You're all caught up</p>
+          <p className="text-sm text-slate-400 mt-1">Nothing is waiting on you right now.</p>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {mine.map((v) => <HeroTask key={v.area.id} view={v} now={now} meId={me.id} skipPasses={stats.data?.skip_passes ?? 0} onComplete={() => request('complete', v)} onRelease={() => request('release', v)} onVote={() => request('vote_dismiss', v)} onSkip={() => request('skip', v)} />)}
+        <div className="space-y-2">
+          <AnimatePresence initial={false}>
+            {mine.map((v) => (
+              <HeroTask
+                key={v.area.id} view={v} now={now} meId={me.id} skipPasses={st?.skip_passes ?? 0}
+                result={finished?.view.area.id === v.area.id ? finished.result : undefined}
+                onComplete={() => slide.complete(v)} onDismissResult={slide.dismiss}
+                onRelease={() => request('release', v)} onVote={() => request('vote_dismiss', v)} onSkip={() => request('skip', v)}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       )}
 
       {others.length > 0 && (
         <>
           <SectionTitle>Needs a hand</SectionTitle>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {others.map((v) => <OpenTask key={v.area.id} view={v} now={now} meId={me.id} onVolunteer={() => request('volunteer', v)} onVote={() => request('vote_dismiss', v)} />)}
           </div>
         </>
       )}
 
-      <SectionTitle action={<Link to="/areas" className="text-xs font-semibold text-emerald-300">All areas</Link>}>House status</SectionTitle>
-      <div className="space-y-2">
-        {views.filter((v) => !v.isActive).map((v) => <AreaRow key={v.area.id} view={v} now={now} />)}
-        {views.filter((v) => !v.isActive).length === 0 && <p className="text-sm text-slate-500 px-1">Every area is currently flagged. Busy house!</p>}
+      <SectionTitle action={<Link to="/areas" className="text-[13px] font-medium text-butter">All areas</Link>}>The house</SectionTitle>
+      <div className="space-y-1.5">
+        {calm.map((v) => <AreaRow key={v.area.id} view={v} now={now} />)}
+        {calm.length === 0 && <p className="text-sm text-slate-500 px-1">Every area is currently flagged. Busy house.</p>}
       </div>
 
-      <SectionTitle action={<Link to="/league" className="text-xs font-semibold text-emerald-300">Full league</Link>}>This round</SectionTitle>
-      {stats.data && stats.data.round_no !== null && (
+      <SectionTitle action={<Link to="/league" className="text-[13px] font-medium text-butter">Full league</Link>}>
+        {st && st.round_no !== null ? `Round ${st.round_no}` : 'This round'}
+      </SectionTitle>
+      {st && st.round_no !== null && (
         <p className="text-xs text-slate-500 -mt-1 mb-2 px-1">
-          Round {stats.data.round_no} · you've had {Math.min(stats.data.round_turns, stats.data.round_turns_needed)} of {stats.data.round_turns_needed} turns
+          You've had {Math.min(st.round_turns, st.round_turns_needed)} of {st.round_turns_needed} turns
         </p>
       )}
-      <Card className="divide-y divide-line py-1">
-        {top3.length === 0 && <p className="text-sm text-slate-500 py-3">No points yet this round. First clean takes the lead.</p>}
+      <Card className="py-2">
+        {top3.length === 0 && <p className="text-sm text-slate-500 py-2">No points yet this round. First clean takes the lead.</p>}
         {top3.map((r) => (
-          <div key={r.user_id} className={cx('flex items-center gap-3 py-3', r.user_id === me.id && 'text-emerald-200')}>
-            <span className="w-7 text-xl text-center">{['🥇', '🥈', '🥉'][r.rank - 1] ?? `${r.rank}.`}</span>
+          <div key={r.user_id} className={cx('flex items-center gap-3 py-2', r.user_id === me.id ? 'text-butter' : 'text-slate-200')}>
+            <span className="w-4 text-sm text-slate-500 tabular-nums">{r.rank}</span>
             <Avatar name={r.name} url={r.avatar_url} size="sm" crown={r.user_id === champ} />
-            <span className="font-semibold flex-1 truncate">{r.name}{r.user_id === me.id && <span className="text-slate-500 font-normal"> (you)</span>}</span>
-            <span className="font-bold tabular-nums">{r.points}</span>
+            <span className={cx('flex-1 truncate', r.user_id === me.id ? 'font-semibold' : 'font-medium')}>{r.name}{r.user_id === me.id && <span className="text-slate-500 font-normal"> (you)</span>}</span>
+            <span className="font-semibold tabular-nums">{r.points}</span>
           </div>
         ))}
       </Card>
@@ -89,70 +112,60 @@ export function HomePage() {
   )
 }
 
-function Stat({ icon, label, value }: { icon: string; label: string; value: string }) {
-  return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-card border border-line px-2.5 py-1.5 text-[13px] whitespace-nowrap">
-      <span>{icon}</span>
-      <span className="font-bold tabular-nums">{value}</span>
-      <span className="text-slate-500">{label}</span>
-    </div>
-  )
-}
-
-/** "🤷 Priya thinks it looks fine · 1 of 3" with an Agree button for rotation members. */
+/** "Priya thinks it looks fine · 1 of 3" with an Agree button for rotation members. */
 function VoteLine({ view, meId, onVote }: { view: AreaView; meId: string; onVote: () => void }) {
   const { dismissVoters, dismissVotesNeeded, hasVotedDismiss, canVoteDismiss } = view
   if (dismissVoters.length === 0) return null
   return (
-    <div className="mt-3 rounded-2xl bg-card-2/70 border border-line px-3 py-2 text-xs text-slate-400 flex items-center gap-2">
+    <div className="mt-3 rounded-2xl bg-surface/60 px-3 py-2 text-xs text-slate-400 flex items-center gap-2">
       <span className="flex-1 min-w-0">
-        🤷 <b className="text-slate-200">{voterNames(dismissVoters, meId)}</b> {dismissVoters.length === 1 ? 'thinks' : 'think'} it looks fine
+        <b className="text-slate-200">{voterNames(dismissVoters, meId)}</b> {dismissVoters.length === 1 ? 'thinks' : 'think'} it looks fine
         <span className="text-slate-600"> · </span>{dismissVoters.length} of {dismissVotesNeeded}
       </span>
-      {canVoteDismiss && <button onClick={onVote} className="font-semibold text-emerald-300 shrink-0">Agree</button>}
-      {hasVotedDismiss && <span className="text-emerald-300/70 shrink-0">You agreed</span>}
+      {canVoteDismiss && <button onClick={onVote} className="font-semibold text-butter shrink-0">Agree</button>}
+      {hasVotedDismiss && <span className="text-butter/70 shrink-0">You agreed</span>}
     </div>
   )
 }
 
-function HeroTask({ view, now, meId, skipPasses, onComplete, onRelease, onVote, onSkip }: { view: AreaView; now: Date; meId: string; skipPasses: number; onComplete: () => void; onRelease: () => void; onVote: () => void; onSkip: () => void }) {
+const quiet = 'text-[13.5px] text-slate-300 underline underline-offset-[3px] decoration-slate-600 py-1'
+
+function HeroTask({ view, now, meId, skipPasses, result, onComplete, onDismissResult, onRelease, onVote, onSkip }: {
+  view: AreaView; now: Date; meId: string; skipPasses: number; result?: CompletionResult
+  onComplete: () => Promise<boolean>; onDismissResult: () => void; onRelease: () => void; onVote: () => void; onSkip: () => void
+}) {
   const nav = useNavigate()
   const { area, scheduled, amVolunteer, isMyTurn, volunteer, activatedBy, canVoteDismiss, dismissVoters } = view
   const canSkip = isMyTurn && area.state.activation_state === 'active' && !area.state.skip_from_user_id && skipPasses > 0
+  const covering = amVolunteer && !isMyTurn
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-      className="relative rounded-[28px] p-[1.5px] bg-gradient-to-br from-emerald-400 via-sky-400 to-violet-400 shadow-2xl shadow-emerald-500/15"
+      layout
+      initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.25 } }}
+      className="relative overflow-hidden rounded-3xl bg-card p-[18px] min-h-[208px]"
     >
-      <div className="rounded-[26px] bg-card p-5">
-        <button onClick={() => nav(`/areas/${area.id}`)} className="text-left w-full">
-          <div className="flex items-start gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-card-2 flex items-center justify-center text-3xl shrink-0">{area.icon}</div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-rose-300">⚠️ Needs cleaning</div>
-              <h3 className="text-2xl font-extrabold leading-tight mt-0.5">{area.name}</h3>
-              <p className="text-slate-300 mt-1">
-                {amVolunteer && !isMyTurn ? <>You volunteered to cover <b>{scheduled?.name}</b>.</> : "It's your turn to clean."}
-              </p>
-              <p className="text-sm text-slate-500 mt-1">
-                {area.state.last_cleaned_at ? `Last cleaned ${timeAgo(area.state.last_cleaned_at, now)}` : 'No cleaning recorded yet'}
-                {activatedBy && <> · flagged by {activatedBy.name} {timeAgo(area.state.activated_at, now)}</>}
-              </p>
-              {isMyTurn && volunteer && <p className="text-sm text-sky-300 mt-1">🙋 {volunteer.name} has offered to cover you — but you can still do it.</p>}
-            </div>
-          </div>
-        </button>
-        <Button variant="hero" size="lg" className="w-full mt-4" onClick={onComplete}>✓ Mark as done</Button>
-        <div className="flex justify-between gap-2 mt-2">
-          {amVolunteer && !isMyTurn
-            ? <Button variant="ghost" size="sm" onClick={onRelease}>Cancel volunteer</Button>
+      <button onClick={() => nav(`/areas/${area.id}`)} className="text-left w-full">
+        <div className="text-[12.5px] font-semibold text-coral">{covering ? `Covering ${scheduled?.name ?? 'someone'}` : 'Your turn'}</div>
+        <h3 className="text-[32px] font-bold leading-[1.1] tracking-[-0.03em] mt-0.5">{area.name}</h3>
+        <p className="text-[13.5px] text-slate-300 mt-1">
+          {activatedBy && <>{activatedBy.name} flagged it {timeAgo(area.state.activated_at, now)}. </>}
+          {area.state.last_cleaned_at ? `Last cleaned ${timeAgo(area.state.last_cleaned_at, now)}.` : 'No cleaning recorded yet.'}
+        </p>
+        {isMyTurn && volunteer && <p className="text-[13.5px] text-butter mt-1">{volunteer.name} has offered to cover you, but you can still do it.</p>}
+      </button>
+      <SlideToClean className="mt-3.5" onComplete={onComplete} />
+      {(covering || (canVoteDismiss && dismissVoters.length === 0) || canSkip) && (
+        <div className="flex justify-between gap-3 mt-2.5 px-1">
+          {covering
+            ? <button className={quiet} onClick={onRelease}>Cancel volunteer</button>
             : canVoteDismiss && dismissVoters.length === 0
-              ? <Button variant="ghost" size="sm" onClick={onVote}>Looks fine, not needed</Button>
+              ? <button className={quiet} onClick={onVote}>Looks fine to me</button>
               : <span />}
-          {canSkip && <Button variant="ghost" size="sm" className="text-amber-200" onClick={onSkip}>🎟️ Use a Skip Pass</Button>}
+          {canSkip && <button className={quiet} onClick={onSkip}>Use a Skip Pass</button>}
         </div>
-        <VoteLine view={view} meId={meId} onVote={onVote} />
-      </div>
+      )}
+      <VoteLine view={view} meId={meId} onVote={onVote} />
+      {result && <DoneFlood result={result} onDismiss={onDismissResult} />}
     </motion.div>
   )
 }
@@ -161,21 +174,21 @@ function OpenTask({ view, now, meId, onVolunteer, onVote }: { view: AreaView; no
   const nav = useNavigate()
   const { area, scheduled, volunteer, canVolunteer, graceEndsAt, volunteeringEnabled } = view
   return (
-    <Card className="border-rose-400/20">
+    <Card className="rounded-2xl pl-3.5">
       <button onClick={() => nav(`/areas/${area.id}`)} className="flex items-center gap-3 w-full text-left">
-        <div className="h-11 w-11 rounded-2xl bg-card-2 flex items-center justify-center text-2xl shrink-0">{area.icon}</div>
+        <span className="h-9 w-1 rounded-full shrink-0 bg-coral" />
         <div className="min-w-0 flex-1">
-          <div className="font-semibold">{area.name}</div>
-          <div className="text-sm text-slate-400">
-            {volunteer ? <>🙋 {volunteer.name} volunteered to cover {scheduled?.name ?? 'this'}</> : <>{scheduled?.name ?? 'Nobody'}'s turn · flagged {timeAgo(area.state.activated_at, now)}</>}
+          <div className="font-display font-semibold text-[16.5px] tracking-[-0.01em]">{area.name}</div>
+          <div className="text-[12.5px] text-slate-400 mt-0.5">
+            {volunteer ? <>{volunteer.name} volunteered to cover {scheduled?.name ?? 'this'}</> : <><span className="text-coral">{scheduled?.name ?? 'Nobody'}'s turn</span> · flagged {timeAgo(area.state.activated_at, now)}</>}
           </div>
         </div>
       </button>
       {!volunteer && volunteeringEnabled && (
         canVolunteer ? (
-          <Button variant="secondary" className="w-full mt-3" onClick={onVolunteer}>🙋 Volunteer to clean</Button>
+          <Button variant="secondary" className="w-full mt-3" onClick={onVolunteer}>Volunteer to clean</Button>
         ) : graceEndsAt ? (
-          <p className="text-xs text-slate-500 mt-3 px-1">Volunteering opens {timeUntil(graceEndsAt, now)} if {scheduled?.name ?? 'they'} hasn't done it.</p>
+          <p className="text-xs text-slate-500 mt-2.5 pl-4">Volunteering opens {timeUntil(graceEndsAt, now)} if {scheduled?.name ?? 'they'} hasn't done it.</p>
         ) : null
       )}
       <VoteLine view={view} meId={meId} onVote={onVote} />

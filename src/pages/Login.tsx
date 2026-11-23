@@ -49,23 +49,22 @@ export function LoginPage() {
     <div className="min-h-dvh flex flex-col safe-top safe-bottom">
       <div className="flex-1 mx-auto w-full max-w-md px-6 pt-16 pb-10 flex flex-col">
         <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-10">
-          <div className="text-5xl mb-4">🏠</div>
-          <h1 className="text-3xl font-extrabold tracking-tight">ChoreWars</h1>
-          <p className="text-slate-400 mt-1">Who's cleaning? Who's winning? Let's find out.</p>
+          <h1 className="text-[40px] font-bold leading-none">ChoreWars</h1>
+          <p className="text-slate-400 mt-2">Who's cleaning? Who's winning? Let's find out.</p>
         </motion.div>
 
         {dir.isLoading && <div className="py-10 flex justify-center"><Spinner /></div>}
 
         {showDirectory && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <p className="text-xs font-bold tracking-[0.18em] uppercase text-slate-400 mb-3 px-1">Tap your name</p>
+            <p className="text-[13px] font-medium text-slate-400 mb-3 px-1">Tap your name</p>
             <div className="grid grid-cols-3 gap-3">
               {dir.data!.map((m) => (
                 <motion.button
                   key={m.email}
                   whileTap={{ scale: 0.96 }}
                   onClick={() => { setPicked(m); setError(null) }}
-                  className="rounded-3xl bg-card border border-line p-4 flex flex-col items-center gap-2 hover:bg-card-2 transition-colors"
+                  className="rounded-3xl bg-card p-4 flex flex-col items-center gap-2 hover:bg-card-2 transition-colors"
                 >
                   <Avatar name={m.name} url={m.avatar_url} size="lg" />
                   <span className="font-semibold text-sm truncate max-w-full">{m.name}</span>
@@ -81,7 +80,7 @@ export function LoginPage() {
         {!dir.isLoading && !showDirectory && (
           <motion.form initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} onSubmit={submit} className="space-y-4">
             {picked ? (
-              <div className="flex items-center gap-3 rounded-3xl bg-card border border-line p-3">
+              <div className="flex items-center gap-3 rounded-3xl bg-card p-3">
                 <button type="button" onClick={() => { setPicked(null); setPassword(''); setError(null) }} className="p-2 rounded-full text-slate-400 hover:bg-white/5" aria-label="Back">
                   <ArrowLeft className="h-5 w-5" />
                 </button>

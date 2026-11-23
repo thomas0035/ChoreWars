@@ -52,7 +52,6 @@ function RequireHouse() {
     return (
       <FullScreen>
         <div className="text-center space-y-3 max-w-sm">
-          <div className="text-5xl">🏚️</div>
           <p className="text-lg font-bold">You're not in a house yet</p>
           <p className="text-sm text-slate-400">Ask an admin to add your account from the Admin panel.</p>
           <Button variant="secondary" onClick={signOut}>Sign out</Button>
@@ -71,7 +70,7 @@ function NotConfigured() {
   return (
     <FullScreen>
       <div className="max-w-md space-y-3">
-        <h1 className="text-2xl font-extrabold">ChoreWars isn't connected yet</h1>
+        <h1 className="text-2xl font-bold">ChoreWars isn't connected yet</h1>
         <p className="text-slate-300">
           Copy <code className="text-emerald-300">.env.example</code> to <code className="text-emerald-300">.env</code> and fill in your Supabase URL and anon key, then restart the dev server.
         </p>

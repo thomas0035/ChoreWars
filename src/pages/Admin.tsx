@@ -21,7 +21,7 @@ export function AdminPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight">Admin</h1>
+      <h1 className="text-2xl font-bold">Admin</h1>
       <div className="mt-3 grid grid-cols-3 rounded-2xl bg-card border border-line p-1">
         {(['areas', 'members', 'settings'] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
@@ -329,7 +329,7 @@ function MembersTab() {
             <Avatar name={m.name} url={m.avatar_url} />
             <div className="flex-1 min-w-0">
               <div className="font-semibold truncate">{m.name}{m.id === me?.id && <span className="text-slate-500 font-normal"> (you)</span>}</div>
-              <div className="text-xs text-slate-400">{m.role === 'admin' ? 'Admin' : 'Member'}{m.away && <span className="text-amber-200"> · ✈️ Away</span>}</div>
+              <div className="text-xs text-slate-400">{m.role === 'admin' ? 'Admin' : 'Member'}{m.away && <span className="text-amber-200"> · Away</span>}</div>
             </div>
           </Card>
         ))}
@@ -355,7 +355,7 @@ function MembersTab() {
               {selected.role === 'admin' ? 'Remove admin role' : 'Make admin'}
             </Button>
             <div>
-              <Button variant="secondary" className="w-full" onClick={() => { setAdjusting(selected); setSelected(null) }}>⚖️ Adjust points</Button>
+              <Button variant="secondary" className="w-full" onClick={() => { setAdjusting(selected); setSelected(null) }}>Adjust points</Button>
               <p className="text-xs text-slate-500 mt-1.5 px-1">
                 Give or take points for things that aren't a clean: dishes left dirty, an area not checked, extra effort. A reason is required and everyone can see it in History.
               </p>
@@ -365,7 +365,7 @@ function MembersTab() {
                 const away = !selected.away
                 if (await run(() => adminSetMemberAway(selected.id, away), away ? `${selected.name} is away — skipped in every rotation` : `${selected.name} is back in the rotations`)) setSelected({ ...selected, away })
               }}>
-                {selected.away ? '✈️ Mark as back' : '✈️ Mark as away'}
+                {selected.away ? 'Mark as back' : 'Mark as away'}
               </Button>
               <p className="text-xs text-slate-500 mt-1.5 px-1">
                 {selected.away
@@ -628,7 +628,7 @@ function DiscardRound() {
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-sm truncate">{roundLabel(r)}</div>
               <div className="text-xs text-slate-400 truncate">
-                {r.champion_name ? `🥇 ${r.champion_name}` : 'No winner'}
+                {r.champion_name ? `${r.champion_name}` : 'No winner'}
                 {r.loser_name && ` · forfeit: ${r.loser_name}`}
               </div>
             </div>

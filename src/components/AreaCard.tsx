@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
-import { Card, cx } from './ui'
-import { StatusPill } from './StatusPill'
+import { Card } from './ui'
+import { StatusPill, statusStripClass } from './StatusPill'
 import { timeAgo } from '@/lib/format'
 import type { AreaView } from '@/lib/status'
 
@@ -23,19 +22,16 @@ export function AreaRow({ view, now }: { view: AreaView; now: Date }) {
         : null
 
   return (
-    <Card onClick={() => nav(`/areas/${area.id}`)} className={cx('flex items-center gap-3 py-3.5', isActive && 'border-rose-400/30')}>
-      <div className="h-11 w-11 rounded-2xl bg-card-2 flex items-center justify-center text-2xl shrink-0">{area.icon}</div>
+    <Card onClick={() => nav(`/areas/${area.id}`)} className="flex items-center gap-3 py-3 pl-3.5 rounded-2xl">
+      <span className={`h-9 w-1 rounded-full shrink-0 ${statusStripClass(view)}`} />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold truncate">{area.name}</span>
-          <StatusPill view={view} />
-        </div>
-        <div className="text-sm text-slate-400 mt-0.5 truncate">
+        <div className="font-display font-semibold text-[16.5px] tracking-[-0.01em] truncate">{area.name}</div>
+        <div className="text-[12.5px] text-slate-400 mt-0.5 truncate">
           {who && <>{who}<span className="text-slate-600"> · </span></>}
           {area.state.last_cleaned_at ? `cleaned ${timeAgo(area.state.last_cleaned_at, now)}` : 'no record'}
         </div>
       </div>
-      <ChevronRight className="h-5 w-5 text-slate-600 shrink-0" />
+      <StatusPill view={view} />
     </Card>
   )
 }

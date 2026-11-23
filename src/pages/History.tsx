@@ -67,7 +67,7 @@ export function HistoryPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight mb-3">History</h1>
+      <h1 className="text-2xl font-bold mb-3">History</h1>
 
       <div className="space-y-2 mb-4">
         <Row>
@@ -76,27 +76,26 @@ export function HistoryPage() {
         </Row>
         <Row>
           <Chip active={!areaId} onClick={() => setAreaId(undefined)}>All areas</Chip>
-          {areas.map((a) => <Chip key={a.id} active={areaId === a.id} onClick={() => setAreaId(a.id)}>{a.icon} {a.name}</Chip>)}
+          {areas.map((a) => <Chip key={a.id} active={areaId === a.id} onClick={() => setAreaId(a.id)}>{a.name}</Chip>)}
         </Row>
         <Row>
           <Chip active={!type} onClick={() => setType(undefined)}>Any type</Chip>
           <Chip active={type === 'normal'} onClick={() => setType('normal')}>Normal</Chip>
-          <Chip active={type === 'volunteer'} onClick={() => setType('volunteer')}>🦸 Rescue</Chip>
-          <Chip active={type === 'adjustment'} onClick={() => { setType('adjustment'); setAreaId(undefined) }}>⚖️ Adjustments</Chip>
+          <Chip active={type === 'volunteer'} onClick={() => setType('volunteer')}>Rescue</Chip>
+          <Chip active={type === 'adjustment'} onClick={() => { setType('adjustment'); setAreaId(undefined) }}>Adjustments</Chip>
         </Row>
       </div>
 
       {history.error && <ErrorBox error={history.error} retry={() => history.refetch()} />}
       {loading && <PageLoading />}
       {empty && (
-        <Card className="text-center py-8 text-slate-400">
-          <div className="text-3xl mb-1">{type === 'adjustment' ? '⚖️' : '🧼'}</div>
+        <Card className="py-6 text-slate-400">
           {type === 'adjustment' ? 'No point adjustments yet.' : 'Nothing here yet.'}
         </Card>
       )}
       {groups.map(([day, items]) => (
         <div key={day} className="mb-4">
-          <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-slate-400 px-1 mb-2">{day}</p>
+          <p className="text-[13px] font-medium text-slate-400 px-1 mb-2">{day}</p>
           <Card className="divide-y divide-line py-1">
             {items.map((it) => it.kind === 'completion'
               ? <CompletionItem key={it.c.id} c={it.c} meId={me?.id} onUndo={latestPerArea.has(it.c.id) ? () => undo.request(it.c) : undefined} />
@@ -120,7 +119,6 @@ export function AdjustmentItem({ a, meId, onUndo }: { a: PointAdjustment; meId?:
   const long = a.note.length > 40
   return (
     <div className="flex items-start gap-3 py-3 cursor-pointer" onClick={() => setExpanded((v) => !v)}>
-      <div className="h-10 w-10 rounded-2xl bg-card-2 flex items-center justify-center text-xl shrink-0">⚖️</div>
       <div className="min-w-0 flex-1">
         <div className="font-semibold truncate">
           <Link to={`/profile/${a.user_id}`} onClick={(e) => e.stopPropagation()} className={cx(a.user_id === meId && 'text-emerald-200')}>{a.member?.name ?? 'Someone'}</Link>
@@ -150,14 +148,13 @@ export function CompletionItem({ c, showArea = true, meId, onUndo }: { c: Comple
   const penaltyNote = rescue && c.scheduled && penalty > 0 && c.points_awarded > 0 ? ` · −${penalty} for ${scheduledName}` : ''
   return (
     <div className="flex items-center gap-3 py-3">
-      {showArea && <div className="h-10 w-10 rounded-2xl bg-card-2 flex items-center justify-center text-xl shrink-0">{c.area?.icon ?? '🧹'}</div>}
       <div className="min-w-0 flex-1">
         <div className="font-semibold truncate">
           {showArea && <>{c.area?.name ?? 'Area'} · </>}
           <Link to={c.completed_by_user_id ? `/profile/${c.completed_by_user_id}` : '#'} className={cx(c.completed_by_user_id === meId && 'text-emerald-200')}>
             {cleanerName}
           </Link>
-          {rescue && ' 🦸'}
+          {rescue && <span className="text-slate-500 font-normal text-xs"> · rescue</span>}
         </div>
         <div className="text-xs text-slate-500 truncate">
           {logged ? 'Logged by admin' : rescue ? <>Volunteer rescue · scheduled: {scheduledName}<span className="text-rose-300/80">{penaltyNote}</span></> : 'Normal turn'} · {timeLabel(c.completed_at)}

@@ -37,35 +37,35 @@ export function GuidePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight">How ChoreWars works</h1>
+      <h1 className="text-2xl font-bold">How ChoreWars works</h1>
       <p className="text-slate-400 text-sm mt-1">
         Everything you need to know, in plain words. The numbers here are your house's current settings.
       </p>
 
       <div className="mt-5 space-y-2">
-        <Section icon="🏠" title="The idea in 30 seconds" open>
+        <Section title="The idea in 30 seconds" open>
           <ol className="list-decimal pl-5 space-y-1.5">
             <li>Every area (kitchen, bathroom…) has a list of <b>people who clean it</b>.</li>
-            <li>When an area looks dirty, <b>anyone</b> taps <Btn>🧹 This needs cleaning</Btn>. That's called <b>flagging</b> it.</li>
+            <li>When an area looks dirty, <b>anyone</b> taps <Btn>This needs cleaning</Btn>. That's called <b>flagging</b> it.</li>
             <li>The turn goes to whoever on that list has had the <b>fewest turns this round</b> (counting all areas) and has no other task open. If that's a tie, whoever has waited longest.</li>
-            <li>They clean it and tap <Btn>✓ Mark as done</Btn>. They get points.</li>
+            <li>They clean it and drag <Btn>Slide to clean</Btn> across the card. They get points.</li>
           </ol>
           <p>So nobody gets three areas at once while someone else has none, and everyone gets about the same number of turns. Open an area to see who'd get it <b>if it were flagged now</b>. That can change once another area is flagged first.</p>
           <p>That's it. Everything else (rescues, rounds, Skip Passes) is about keeping it fair and a bit competitive.</p>
         </Section>
 
-        <Section icon="🚦" title="What the colours mean">
+        <Section title="What the colours mean">
           <p>Each area shows how long it's been since it was last cleaned:</p>
           <ul className="space-y-1.5">
-            <Dot cls="bg-emerald-400"><b>Fresh</b>: cleaned recently, probably fine.</Dot>
-            <Dot cls="bg-amber-300"><b>Due soon</b>: getting close to its usual cleaning time.</Dot>
-            <Dot cls="bg-orange-400"><b>Ready to check</b>: it's around the usual time. Have a look.</Dot>
-            <Dot cls="bg-rose-400"><b>Needs attention</b>: it's been a long time. It almost certainly needs cleaning.</Dot>
+            <Dot cls="bg-butter"><b>Fresh</b>: cleaned recently, probably fine.</Dot>
+            <Dot cls="bg-butter/50"><b>Due soon</b>: getting close to its usual cleaning time.</Dot>
+            <Dot cls="bg-slate-500"><b>Ready to check</b>: it's around the usual time. Have a look.</Dot>
+            <Dot cls="bg-coral/60"><b>Needs attention</b>: it's been a long time. It almost certainly needs cleaning.</Dot>
           </ul>
-          <p>These colours are only a hint. Nothing happens until someone <b>flags</b> the area. A flagged area shows whose turn it is.</p>
+          <p>These colours are only a hint. Nothing happens until someone <b>flags</b> the area. A flagged area turns solid coral and shows whose turn it is.</p>
         </Section>
 
-        <Section icon="⭐" title="Points">
+        <Section title="Points">
           <Table
             head={['Area', 'Your turn', 'Rescue', 'Usually every']}
             rows={areas.map((a) => [`${a.icon} ${a.name}`, `+${a.normal_points}`, `+${a.rescue_points}`, span(a.expected_interval_hours)])}
@@ -77,17 +77,17 @@ export function GuidePage() {
           </ul>
         </Section>
 
-        <Section icon="🔥" title="Streaks">
+        <Section title="Streaks">
           <p>Your streak goes up by one every time you clean on your own turn, in any area.</p>
           <p>It only goes back to 0 if someone else has to <b>rescue</b> one of your turns. Using a Skip Pass doesn't break it.</p>
         </Section>
 
-        <Section icon="🦸" title="Rescues (volunteering)">
+        <Section title="Rescues (volunteering)">
           {volunteering ? (
             <>
               <p>
                 If a flagged area still isn't done <b>{grace}</b> after it was flagged, anyone else can tap{' '}
-                <Btn>🙋 Volunteer to clean</Btn> and do it instead.
+                <Btn>Volunteer to clean</Btn> and do it instead.
               </p>
               <ul className="space-y-1.5">
                 <li>The person who rescues it gets the <b>rescue points</b> (see the table above).</li>
@@ -103,7 +103,7 @@ export function GuidePage() {
           )}
         </Section>
 
-        <Section icon="👍" title={'"Looks fine" votes'}>
+        <Section title={'"Looks fine" votes'}>
           <p>
             If an area was flagged but really doesn't need cleaning, the person whose turn it is can tap <Btn>Looks fine, not needed</Btn>.
             That starts a vote. Other people who clean that area can tap <Btn>Agree, looks fine</Btn>.
@@ -113,7 +113,7 @@ export function GuidePage() {
           <p>After an area is cleaned, it can't be flagged again for <b>{cooldown}</b>.</p>
         </Section>
 
-        <Section icon="🏆" title="The league: rounds">
+        <Section title="The league: rounds">
           <p>We compete in <b>rounds</b>, not calendar months. In a month one person might get several turns and someone else none, which isn't fair.</p>
           <ul className="space-y-1.5">
             <li>A round ends once <b>everyone has had {turnsWord}</b>. A turn counts once the area is cleaned, by you or by someone who rescued you.</li>
@@ -124,8 +124,8 @@ export function GuidePage() {
           <p>The League tab shows the current round, everyone's score and how many turns each person has had.</p>
         </Section>
 
-        <Section icon="👑" title="End of a round">
-          <p><b>Winner</b> (highest score): gets a <b>Skip Pass</b> and the League Champion badge, and wears the 👑 crown during the next round.</p>
+        <Section title="End of a round">
+          <p><b>Winner</b> (highest score): gets a <b>Skip Pass</b> and the League Champion badge, and wears the crown during the next round.</p>
           <p><b>Lowest scorer</b>: does the forfeit: <i>"{forfeit}"</i>. They tick it off in the app once it's done.</p>
           <p className="text-slate-400">
             If you joined partway through or were away, you're safe. Everyone else can get it, even if the round hit the time limit before they had all {turnsWord}.
@@ -138,18 +138,18 @@ export function GuidePage() {
           </ul>
         </Section>
 
-        <Section icon="⚖️" title="Points for things that aren't a clean">
+        <Section title="Points for things that aren't a clean">
           <p>Admins can <b>give or take points</b> for stuff outside the normal turns: dirty dishes left out, an area not actually checked, or extra effort nobody asked for.</p>
           <ul className="space-y-1.5">
-            <li>Every adjustment needs a <b>reason</b>, and everyone can see it in <b>History</b> (filter ⚖️ Adjustments) and on the person's profile.</li>
+            <li>Every adjustment needs a <b>reason</b>, and everyone can see it in <b>History</b> (filter Adjustments) and on the person's profile.</li>
             <li>It counts the same as any other points: this round, this week and all time.</li>
             <li>There's a limit per adjustment (set by the admins), and it can be undone until the round is settled.</li>
           </ul>
           <p className="text-slate-400">You'll get a notification if an admin adjusts your points.</p>
         </Section>
 
-        <Section icon="🎟️" title="Skip Pass">
-          <p>When it's your turn on a flagged area (and nobody has volunteered yet), you can tap <Btn>🎟️ Use a Skip Pass</Btn> to hand the task on.</p>
+        <Section title="Skip Pass">
+          <p>When it's your turn on a flagged area (and nobody has volunteered yet), you can tap <Btn>Use a Skip Pass</Btn> to hand the task on.</p>
           <ul className="space-y-1.5">
             <li>It goes to whoever came <b>last in the previous round</b>. If they're away, it goes to whoever has had the fewest turns.</li>
             <li>It counts as <b>their</b> turn. You get no points, but no penalty, and your streak is safe.</li>
@@ -158,7 +158,7 @@ export function GuidePage() {
           </ul>
         </Section>
 
-        <Section icon="✈️" title="Going away">
+        <Section title="Going away">
           <p>Travelling? Ask an admin to mark you as <b>away</b>. While you're away:</p>
           <ul className="space-y-1.5">
             <li>You don't get any turns.</li>
@@ -168,7 +168,7 @@ export function GuidePage() {
           <p>Tell an admin when you're back so you start getting turns again.</p>
         </Section>
 
-        <Section icon="🧺" title="Stock: shared food and who owes whom">
+        <Section title="Stock: shared food and who owes whom">
           <p>Bought something for the house? Open <b>Stock</b>, tap <Btn>+ I bought something</Btn> and enter what it is, how much (pieces, packs, grams, kg, ml or litres) and the total price.</p>
           <ul className="space-y-1.5">
             <li>When you take some, log it: tap <Btn>+</Btn> for pieces and packs (tapped one too many? tap <Btn>−</Btn>), or <Btn>Take</Btn> and enter the amount.</li>
@@ -180,12 +180,12 @@ export function GuidePage() {
           <p className="text-slate-400">Logged the wrong amount? Fix it within 24 hours (− or undo on the item), or ask an admin. The buyer can delete an item they added by mistake; anyone who took some is told, and stops owing for it. Everyone gets a notification when something new is added.</p>
         </Section>
 
-        <Section icon="🥇" title="Weekly champion and badges">
+        <Section title="Weekly champion and badges">
           <p>Separately from rounds, whoever scores the most points each week is <b>Weekly Champion</b>. It's just for bragging rights.</p>
           <p>Badges (first clean, streaks, rescues and more) are on your <b>Profile</b>. Your all-time points are kept forever.</p>
         </Section>
 
-        <Section icon="🔔" title="Notifications">
+        <Section title="Notifications">
           <p>Go to <b>Profile → Notify me on this device</b> and allow notifications. Tap <b>Send a test</b> to check it works. Do this on each phone or computer you use.</p>
           <p>You'll get a notification when:</p>
           <ul className="space-y-1.5">
@@ -199,13 +199,13 @@ export function GuidePage() {
           <p className="text-slate-400">Reminders are only sent between 8am and 10pm. On iPhone, add the app to your Home Screen first (see below), then turn notifications on from inside it.</p>
         </Section>
 
-        <Section icon="📱" title="Install it like an app">
+        <Section title="Install it like an app">
           <p><b>iPhone</b>: open the site in Safari → Share → <b>Add to Home Screen</b>.</p>
           <p><b>Android</b>: open it in Chrome → ⋮ menu → <b>Add to Home screen</b> or <b>Install app</b>.</p>
           <p>It then opens full-screen like a normal app.</p>
         </Section>
 
-        <Section icon="🛠️" title="Mistakes and admin help">
+        <Section title="Mistakes and admin help">
           <p>Tapped Mark as done by accident, or the wrong person is up? Ask an admin. They can undo the latest clean, change whose turn it is, and change who cleans which area.</p>
           <p>The clock button at the top right shows everything that has been cleaned and by whom.</p>
         </Section>
@@ -214,12 +214,11 @@ export function GuidePage() {
   )
 }
 
-function Section({ icon, title, open, children }: { icon: string; title: string; open?: boolean; children: ReactNode }) {
+function Section({ title, open, children }: { title: string; open?: boolean; children: ReactNode }) {
   return (
-    <details open={open} className="group rounded-3xl bg-card border border-line">
+    <details open={open} className="group rounded-3xl bg-card">
       <summary className="flex items-center gap-3 px-4 h-14 cursor-pointer list-none select-none [&::-webkit-details-marker]:hidden">
-        <span className="text-xl">{icon}</span>
-        <span className="font-semibold flex-1">{title}</span>
+        <span className="font-display font-semibold flex-1">{title}</span>
         <span className="text-slate-500 transition-transform group-open:rotate-90">›</span>
       </summary>
       <div className="px-4 pb-4 -mt-1 space-y-3 text-[15px] leading-relaxed text-slate-300">{children}</div>

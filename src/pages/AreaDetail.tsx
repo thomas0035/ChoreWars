@@ -8,6 +8,7 @@ import { fetchHistory, fetchUserStats } from '@/lib/api'
 import { hoursHuman, intervalRange, timeAgo, timeUntil } from '@/lib/format'
 import { STATUS_STYLES, voterNames } from '@/lib/status'
 import { StatusPill } from '@/components/StatusPill'
+import { DoneFlood, SlideToClean, useSlideComplete } from '@/components/SlideToClean'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx } from '@/components/ui'
 import { CompletionItem } from './History'
 
@@ -17,6 +18,7 @@ export function AreaDetailPage() {
   const { views, now, isLoading, error, me, isAdmin, house } = useAreaViews()
   const { request, sheet } = useAreaActions(now)
   const undo = useUndoCompletion()
+  const slide = useSlideComplete()
   const history = useQuery({ queryKey: queryKeys.history({ areaId: id, limit: 8 }), queryFn: () => fetchHistory({ areaId: id, limit: 8 }), enabled: Boolean(id) })
   const stats = useQuery({ queryKey: queryKeys.stats(me?.id), queryFn: () => fetchUserStats(), enabled: Boolean(me) })
 
@@ -27,7 +29,7 @@ export function AreaDetailPage() {
     return (
       <div className="text-center py-16">
         <p className="text-slate-400">That area doesn't exist any more.</p>
-        <Link to="/areas" className="text-emerald-300 font-semibold text-sm">Back to areas</Link>
+        <Link to="/areas" className="text-butter font-medium text-sm">Back to areas</Link>
       </div>
     )
   }
@@ -46,19 +48,14 @@ export function AreaDetailPage() {
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      <div className={cx('rounded-[28px] border p-5', isActive ? 'bg-rose-500/10 border-rose-400/30' : cx('bg-card border-line'))}>
-        <div className="flex items-start gap-4">
-          <div className="h-16 w-16 rounded-3xl bg-card-2 flex items-center justify-center text-4xl shrink-0">{area.icon}</div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-3xl font-extrabold tracking-tight leading-none">{area.name}</h1>
-            <div className="mt-2"><StatusPill view={view} size="md" /></div>
-          </div>
-        </div>
+      <div className="relative overflow-hidden rounded-3xl bg-card p-[18px]">
+        <StatusPill view={view} size="md" />
+        <h1 className="text-[34px] font-bold leading-[1.1] tracking-[-0.03em] mt-0.5">{area.name}</h1>
 
-        <p className="mt-4 text-slate-300">
+        <p className="mt-2 text-slate-300">
           {isActive
             ? volunteer
-              ? <>🙋 <b>{volunteer.name}</b> volunteered to clean this for <b>{scheduled?.name}</b>.</>
+              ? <><b>{volunteer.name}</b> volunteered to clean this for <b>{scheduled?.name}</b>.</>
               : isMyTurn
                 ? <>It's <b>your turn</b> to clean this.</>
                 : <><b>{scheduled?.name ?? 'Nobody'}</b>'s turn to clean this.</>
@@ -68,7 +65,7 @@ export function AreaDetailPage() {
           <p className="text-sm text-slate-500 mt-1">Flagged by {activatedBy.name} {timeAgo(s.activated_at, now)}.</p>
         )}
         {skippedBy && (
-          <p className="text-sm text-amber-200/80 mt-1">🎟️ Passed on by {skippedBy.id === me.id ? 'you' : skippedBy.name} with a Skip Pass.</p>
+          <p className="text-sm text-slate-400 mt-1">Passed on by {skippedBy.id === me.id ? 'you' : skippedBy.name} with a Skip Pass.</p>
         )}
 
         <div className="grid grid-cols-2 gap-2 mt-5">
@@ -79,27 +76,27 @@ export function AreaDetailPage() {
         </div>
 
         <div className="mt-5 space-y-2">
-          {canComplete && <Button variant="hero" size="lg" className="w-full" onClick={() => request('complete', view)}>✓ Mark as done</Button>}
-          {!isActive && canMarkNeeds && <Button size="lg" className="w-full" onClick={() => request('mark', view)}>🧹 This needs cleaning</Button>}
+          {canComplete && <SlideToClean onComplete={() => slide.complete(view)} />}
+          {!isActive && canMarkNeeds && <Button size="lg" className="w-full" onClick={() => request('mark', view)}>This needs cleaning</Button>}
           {!isActive && !canMarkNeeds && cooldownEndsAt && (
-            <div className="rounded-2xl bg-card-2 border border-line p-3 text-sm text-slate-400 text-center">
-              Recently cleaned — you can flag it again {timeUntil(cooldownEndsAt, now)}.
+            <div className="rounded-2xl bg-surface/60 p-3 text-sm text-slate-400 text-center">
+              Recently cleaned. You can flag it again {timeUntil(cooldownEndsAt, now)}.
             </div>
           )}
           {isActive && !canComplete && !volunteer && volunteeringEnabled && (
             canVolunteer
-              ? <Button variant="secondary" size="lg" className="w-full" onClick={() => request('volunteer', view)}>🙋 Volunteer to clean</Button>
+              ? <Button variant="secondary" size="lg" className="w-full" onClick={() => request('volunteer', view)}>Volunteer to clean</Button>
               : graceEndsAt && (
-                <div className="rounded-2xl bg-card-2 border border-line p-3 text-sm text-slate-400 text-center">
+                <div className="rounded-2xl bg-surface/60 p-3 text-sm text-slate-400 text-center">
                   {scheduled?.name ?? 'They'}'s turn for now. Volunteering opens {timeUntil(graceEndsAt, now)}.
                 </div>
               )
           )}
           {isActive && (dismissVoters.length > 0 || canVoteDismiss) && (
-            <div className="rounded-2xl bg-card-2/70 border border-line p-3 text-sm">
+            <div className="rounded-2xl bg-surface/60 p-3 text-sm">
               {dismissVoters.length > 0 ? (
                 <p className="text-slate-300">
-                  🤷 <b>{voterNames(dismissVoters, me.id)}</b> {dismissVoters.length === 1 ? 'thinks' : 'think'} it looks fine
+                  <b>{voterNames(dismissVoters, me.id)}</b> {dismissVoters.length === 1 ? 'thinks' : 'think'} it looks fine
                   <span className="text-slate-600"> · </span><b>{dismissVoters.length} of {dismissVotesNeeded}</b> needed to clear the flag.
                 </p>
               ) : (
@@ -116,9 +113,10 @@ export function AreaDetailPage() {
           <div className="flex gap-2">
             {canRelease && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('release', view)}>{amVolunteer ? 'Cancel my volunteer claim' : 'Clear volunteer claim'}</Button>}
             {canDismiss && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('dismiss', view)}>Clear flag (admin)</Button>}
-            {canSkip && <Button variant="ghost" size="sm" className="flex-1 text-amber-200" onClick={() => request('skip', view)}>🎟️ Use a Skip Pass</Button>}
+            {canSkip && <Button variant="ghost" size="sm" className="flex-1" onClick={() => request('skip', view)}>Use a Skip Pass</Button>}
           </div>
         </div>
+        {slide.done?.view.area.id === area.id && <DoneFlood result={slide.done.result} onDismiss={slide.dismiss} />}
       </div>
 
       <SectionTitle>Who cleans this</SectionTitle>
@@ -129,13 +127,13 @@ export function AreaDetailPage() {
           <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-1 px-1">
             {cleaners.map((m) => (
               <Link key={m.id} to={`/profile/${m.id}`} className={cx('flex flex-col items-center gap-1.5 min-w-[64px]', m.away && 'opacity-40')}>
-                <div className={cx('rounded-full p-[2px]', m.id === holderId ? 'bg-gradient-to-br from-emerald-400 to-sky-400' : 'bg-transparent')}>
+                <div className={cx('rounded-full p-[2px]', m.id === holderId ? 'bg-butter' : 'bg-transparent')}>
                   <Avatar name={m.name} url={m.avatar_url} size="md" className={cx(m.id === holderId && 'ring-2 ring-card')} />
                 </div>
-                <span className={cx('text-xs truncate max-w-[72px]', m.id === holderId ? 'font-bold text-emerald-200' : 'text-slate-400')}>
+                <span className={cx('text-xs truncate max-w-[72px]', m.id === holderId ? 'font-semibold text-butter' : 'text-slate-400')}>
                   {m.id === me.id ? 'You' : m.name}
                 </span>
-                {m.away && <span className="text-[10px] text-amber-200 -mt-1">✈️ away</span>}
+                {m.away && <span className="text-[10px] text-slate-400 -mt-1">away</span>}
               </Link>
             ))}
           </div>
@@ -145,7 +143,7 @@ export function AreaDetailPage() {
         </p>
       </Card>
 
-      <SectionTitle action={<Link to="/history" className="text-xs font-semibold text-emerald-300">All history</Link>}>Recent history</SectionTitle>
+      <SectionTitle action={<Link to="/history" className="text-[13px] font-medium text-butter">All history</Link>}>Recent history</SectionTitle>
       <Card className="divide-y divide-line py-1">
         {history.isLoading && <p className="text-sm text-slate-500 py-3">Loading…</p>}
         {history.data?.length === 0 && <p className="text-sm text-slate-500 py-3">No cleanings recorded yet.</p>}
@@ -162,8 +160,8 @@ export function AreaDetailPage() {
 
 function Fact({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
-    <div className="rounded-2xl bg-card-2/70 border border-line p-3">
-      <div className="text-[10px] font-bold tracking-[0.16em] uppercase text-slate-500">{label}</div>
+    <div className="rounded-2xl bg-surface/60 p-3">
+      <div className="text-xs text-slate-500">{label}</div>
       <div className={cx('font-semibold mt-0.5 truncate', accent)}>{value}</div>
     </div>
   )

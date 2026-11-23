@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChoreWars: Slide colours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #2a2a28; color: #e8e6df; font: 15px/1.5 "Instrument Sans", "Segoe UI", sans-serif; padding: 40px 24px 80px; }
+  .page { max-width: 1640px; margin: 0 auto; }
+  .page > h1 { font: 600 30px/1.1 "Bricolage Grotesque", "Segoe UI", sans-serif; letter-spacing: -.02em; }
+  .page > p { max-width: 70ch; margin-top: 8px; color: #a9a79e; }
+  .row { display: flex; flex-wrap: wrap; gap: 40px 32px; margin-top: 36px; justify-content: center; }
+  .col { width: 372px; }
+  .col h2 { font: 600 20px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -.01em; }
+  .col .tag { font: 500 12px "IBM Plex Mono", Consolas, monospace; color: #8f8d84; margin-bottom: 14px; }
+  .notes { margin-top: 14px; font-size: 14px; color: #b9b7ae; }
+  .sw { display: flex; gap: 6px; margin-top: 14px; }
+  .sw span { flex: 1; height: 40px; border-radius: 6px; border: 1px solid rgba(255,255,255,.14); font: 500 10px "IBM Plex Mono", monospace; display: flex; align-items: flex-end; padding: 4px 5px; }
+  .replay { margin-top: 12px; font: 500 12px "IBM Plex Mono", monospace; background: none; border: 1px solid #6b6a63; border-radius: 4px; padding: 6px 10px; cursor: pointer; color: #b9b7ae; }
+
+  .phone { width: 372px; height: 760px; border-radius: 44px; border: 9px solid #050505; overflow: hidden; position: relative; box-shadow: 0 24px 50px -22px rgba(0,0,0,.8); }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--ink);
+    --bg: #0C0C0B; --card: #191917; --ink: #ECEAE0; --soft: #B5B2A8; --mute: #8B897F; --due: #FF7A4D; }
+  .body { flex: 1; overflow: hidden; padding: 0 14px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; padding: 24px 6px 16px; }
+  .top b { font: 700 21px "Bricolage Grotesque", sans-serif; letter-spacing: -.02em; }
+  .top span, .sec { font-size: 12.5px; color: var(--mute); }
+  .sec { padding: 14px 6px 7px; font-weight: 500; }
+  .card { position: relative; background: var(--card); border-radius: 18px; overflow: hidden; }
+  .card > * { position: relative; z-index: 2; }
+  .hero { padding: 18px; height: 188px; }
+  .kick { font-size: 12.5px; font-weight: 600; color: var(--due); }
+  .hero .n { font: 700 32px/1.1 "Bricolage Grotesque", sans-serif; letter-spacing: -.03em; margin-top: 2px; }
+  .dek { font-size: 13.5px; margin-top: 4px; color: var(--soft); min-height: 41px; max-width: 26ch; }
+  .li { display: flex; align-items: center; gap: 12px; padding: 11px 16px 11px 14px; margin-top: 6px; border-radius: 14px; }
+  .li .n { flex: 1; font: 600 16.5px "Bricolage Grotesque", sans-serif; letter-spacing: -.01em; }
+  .li .m { font-size: 12.5px; color: var(--mute); } .li .m.due { color: var(--due); }
+  .li i { width: 4px; height: 22px; border-radius: 2px; background: var(--acc); flex: none; }
+  .li i.mid { background: #6B6960; } .li i.due { background: var(--due); }
+  .league { padding: 10px 16px; }
+  .lg { display: flex; padding: 5px 0; font-size: 14px; }
+  .lg span:nth-child(2) { flex: 1; } .lg span:first-child { width: 22px; opacity: .55; }
+  .lg.me { color: var(--acc); font-weight: 600; }
+  .nav { display: flex; justify-content: space-around; padding: 14px 10px 24px; font-size: 13px; font-weight: 500; color: #6E6B64; }
+  .nav .on { color: var(--acc); }
+
+  .flood { position: absolute !important; inset: 0; z-index: 1 !important; background: var(--flood); clip-path: circle(0 at 88% 150px); }
+  .track { position: relative; margin-top: 14px; height: 48px; border-radius: 999px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 500; color: var(--mute); user-select: none; overflow: hidden; }
+  .trail { position: absolute; inset: 0 auto 0 0; width: 48px; border-radius: 999px; background: var(--acc); opacity: .28; }
+  .knob { position: absolute; left: 0; top: 0; width: 48px; height: 48px; border-radius: 50%; background: var(--acc); cursor: grab; touch-action: none; display: grid; place-items: center; }
+  .knob::after { content: ""; width: 9px; height: 9px; border: solid var(--on); border-width: 2.5px 2.5px 0 0; transform: translateX(-2px) rotate(45deg); }
+  .track.auto .knob, .track.auto .trail { transition: all .7s cubic-bezier(.5,0,.2,1); }
+  .pts { position: absolute !important; right: 18px; bottom: 14px; font: 700 60px/.9 "Bricolage Grotesque", sans-serif; letter-spacing: -.045em; color: var(--fink); opacity: 0; transform: translateY(14px) scale(.9); transform-origin: 100% 100%; }
+
+  .done .flood { clip-path: circle(160% at 88% 150px); transition: clip-path .8s cubic-bezier(.5,0,.2,1); }
+  .done .hero, .done .hero .dek { color: var(--fink); transition: color .3s .25s; }
+  .done .hero .kick { color: var(--fkick); transition: color .3s .25s; }
+  .done .track { opacity: 0; transition: opacity .25s .1s; pointer-events: none; }
+  .done .pts { opacity: 1; transform: none; transition: opacity .3s .45s, transform .5s .45s cubic-bezier(.2,.9,.3,1.3); }
+
+  /* schemes: --acc accent, --on text on accent, --flood finished card, --fink text on finished card, --fkick its small label */
+  .butter  { --acc: #EBD98A; --on: #1B1707; --flood: #EBD98A; --fink: #1B1707; --fkick: #1B1707; }
+  .mustard { --acc: #D9A62E; --on: #1A1203; --flood: #D9A62E; --fink: #1A1203; --fkick: #1A1203; }
+  .tint    { --acc: #CFDD52; --on: #14160A; --flood: #2B3013; --fink: #ECEAE0; --fkick: #CFDD52; }
+  .tint .pts { color: #CFDD52; }
+  .sage    { --acc: #B4CDA0; --on: #10170B; --flood: #B4CDA0; --fink: #10170B; --fkick: #10170B; --bg: #0B0C0B; --card: #181A18; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>ChoreWars: Slide, four colour schemes</h1>
+  <p>Same Slide layout in each. Drag the knob across the card (or click it): the card floods with colour and a big +10 pops in. Each scheme is a different answer to "less harsh than the bright yellow".</p>
+  <div class="row" id="row"></div>
+</div>
+
+<script>
+  const schemes = [
+    { id: 'butter', title: '1 · Butter', tag: 'pale, soft yellow',
+      note: 'The same idea with the yellow turned right down to a creamy butter. Still clearly yellow, far easier on the eyes when it fills the card.',
+      sw: [['#0C0C0B','black','#fff'],['#191917','card','#fff'],['#ECEAE0','chalk','#111'],['#EBD98A','butter','#111'],['#FF7A4D','due','#111']] },
+    { id: 'mustard', title: '2 · Mustard', tag: 'deep, warm yellow',
+      note: 'Goes darker instead of paler: an ochre that reads as warm and a little retro. The filled card is rich, not glaring.',
+      sw: [['#0C0C0B','black','#fff'],['#191917','card','#fff'],['#ECEAE0','chalk','#111'],['#D9A62E','mustard','#111'],['#FF7A4D','due','#111']] },
+    { id: 'tint', title: '3 · Lime, tinted', tag: 'bright colour only in small doses',
+      note: 'Keeps a lime close to the original, slightly softened, but only on small things: the knob, the strips, the +10. The finished card fills with a dark olive tint, so there is never a big bright area.',
+      sw: [['#0C0C0B','black','#fff'],['#191917','card','#fff'],['#2B3013','olive','#fff'],['#CFDD52','lime','#111'],['#FF7A4D','due','#111']] },
+    { id: 'sage', title: '4 · Sage', tag: 'not yellow at all',
+      note: 'A muted grey-green. The calmest of the four and it suits "clean", though it gives up the rubber-glove character.',
+      sw: [['#0B0C0B','black','#fff'],['#181A18','card','#fff'],['#ECEAE0','chalk','#111'],['#B4CDA0','sage','#111'],['#FF7A4D','due','#111']] },
+  ];
+
+  document.getElementById('row').innerHTML = schemes.map(t => `
+    <div class="col">
+      <h2>${t.title}</h2><div class="tag">${t.tag}</div>
+      <div class="phone"><div class="screen ${t.id}" id="${t.id}">
+        <div class="body">
+          <div class="top"><b>Flat 4B</b><span>Round 6 · 42 pts · 2nd</span></div>
+          <div class="card hero">
+            <div class="flood"></div>
+            <div class="kick" data-done="Clean, just now">Your turn</div>
+            <div class="n">Kitchen</div>
+            <div class="dek" data-done="Arjun is up next for the kitchen.">Priya flagged it 2h ago. Last cleaned 4 days ago.</div>
+            <div class="track"><div class="trail"></div>Slide to clean<div class="knob"></div></div>
+            <div class="pts">+10</div>
+          </div>
+          <div class="sec">The house</div>
+          <div class="card li"><i class="due"></i><span class="n">Balcony</span><span class="m due">Arjun's turn · 6d</span></div>
+          <div class="card li"><i class="mid"></i><span class="n">Living room</span><span class="m">3d</span></div>
+          <div class="card li"><i></i><span class="n">Hallway</span><span class="m">2d</span></div>
+          <div class="card li"><i></i><span class="n">Bathroom</span><span class="m">1d</span></div>
+          <div class="sec">This round</div>
+          <div class="card league">
+            <div class="lg"><span>1</span><span>Priya</span><span>58</span></div>
+            <div class="lg me"><span>2</span><span>Thomas</span><span data-done="52">42</span></div>
+            <div class="lg"><span>3</span><span>Arjun</span><span>31</span></div>
+          </div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('${t.id}')">reset</button>
+      <div class="sw">${t.sw.map(([c, n, fg]) => `<span style="background:${c};color:${fg}">${n}</span>`).join('')}</div>
+      <p class="notes">${t.note}</p>
+    </div>`).join('');
+
+  const timers = {};
+  function done(id) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('done')) return;
+    el.classList.add('done');
+    timers[id] = setTimeout(() => el.querySelectorAll('[data-done]').forEach(n => { n.dataset.orig = n.innerHTML; n.innerHTML = n.dataset.done; }), 300);
+  }
+  function reset(id) {
+    clearTimeout(timers[id]);
+    const el = document.getElementById(id);
+    el.classList.remove('done');
+    el.querySelectorAll('[data-orig]').forEach(n => { n.innerHTML = n.dataset.orig; delete n.dataset.orig; });
+    setKnob(el, 0, true);
+  }
+
+  const max = (el) => el.querySelector('.track').clientWidth - 48;
+  function setKnob(el, x, animate) {
+    el.querySelector('.track').classList.toggle('auto', !!animate);
+    el.querySelector('.knob').style.left = x + 'px';
+    el.querySelector('.trail').style.width = (x + 48) + 'px';
+  }
+  schemes.forEach(({ id }) => {
+    const el = document.getElementById(id), knob = el.querySelector('.knob');
+    let startX = null, moved = false;
+    knob.addEventListener('pointerdown', e => { startX = e.clientX; moved = false; knob.setPointerCapture(e.pointerId); });
+    knob.addEventListener('pointermove', e => {
+      if (startX === null) return;
+      const x = Math.max(0, Math.min(max(el), e.clientX - startX));
+      if (x > 4) moved = true;
+      setKnob(el, x);
+    });
+    knob.addEventListener('pointerup', () => {
+      if (startX === null) return;
+      const x = parseFloat(knob.style.left) || 0; startX = null;
+      if (!moved) { setKnob(el, max(el), true); setTimeout(() => done(id), 650); }   // plain click: play it
+      else if (x > max(el) * 0.85) { setKnob(el, max(el), true); done(id); }
+      else setKnob(el, 0, true);
+    });
+    if (location.hash === '#done') { setKnob(el, max(el)); done(id); }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChoreWars: dark cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #2a2a28; color: #e8e6df; font: 15px/1.5 "Instrument Sans", "Segoe UI", sans-serif; padding: 40px 24px 80px; }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .page > h1 { font: 600 30px/1.1 "Schibsted Grotesk", "Segoe UI", sans-serif; letter-spacing: -.02em; }
+  .page > p { max-width: 64ch; margin-top: 8px; color: #a9a79e; }
+  .row { display: flex; flex-wrap: wrap; gap: 40px 36px; margin-top: 36px; justify-content: center; }
+  .col { width: 372px; }
+  .col h2 { font: 600 20px/1.2 "Schibsted Grotesk", sans-serif; letter-spacing: -.01em; }
+  .col .tag { font: 500 12px "IBM Plex Mono", Consolas, monospace; color: #8f8d84; margin-bottom: 14px; }
+  .notes { margin-top: 14px; font-size: 14px; color: #b9b7ae; }
+  .notes li { margin: 5px 0 5px 18px; }
+  .sw { display: flex; gap: 6px; margin-top: 14px; }
+  .sw span { flex: 1; height: 44px; border-radius: 6px; border: 1px solid rgba(255,255,255,.14); font: 500 10px "IBM Plex Mono", monospace; display: flex; align-items: flex-end; padding: 4px 5px; color: #111; }
+  .replay { margin-top: 12px; font: 500 12px "IBM Plex Mono", monospace; background: none; border: 1px solid #6b6a63; border-radius: 4px; padding: 6px 10px; cursor: pointer; color: #b9b7ae; }
+  button { font: inherit; cursor: pointer; }
+  .phone { width: 372px; height: 760px; border-radius: 44px; border: 9px solid #050505; overflow: hidden; position: relative; box-shadow: 0 24px 50px -22px rgba(0,0,0,.8); }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .body { flex: 1; overflow: hidden; padding: 0 14px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; padding: 24px 6px 16px; }
+  .top b { font-size: 21px; letter-spacing: -.02em; }
+  .top span { font-size: 12.5px; }
+  .sec { padding: 14px 6px 7px; font-size: 12.5px; font-weight: 500; }
+  .dek { min-height: 41px; }
+  .screen .li { padding-top: 11px; padding-bottom: 11px; }
+  .act { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+  .link { background: none; border: 0; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; color: inherit; opacity: .8; }
+  .nav { display: flex; justify-content: space-around; padding: 14px 10px 24px; font-size: 13px; font-weight: 500; }
+  .lg { display: flex; padding: 5px 0; font-size: 14px; }
+  .lg span:nth-child(2) { flex: 1; } .lg span:first-child { width: 22px; opacity: .55; }
+
+  /* ───────────── A · GLOVE ───────────── */
+  .A { background: #0C0C0B; color: #ECEAE0; font-family: "Instrument Sans", "Segoe UI", sans-serif; --card: #191917; --mute: #8B897F; --acc: #D8F23A; --due: #FF7A4D; }
+  .A .top b, .A .n { font-family: "Bricolage Grotesque", sans-serif; }
+  .A .top span, .A .sec, .A .m, .A .dek { color: var(--mute); }
+  .A .card { position: relative; background: var(--card); border-radius: 18px; overflow: hidden; }
+  .A .card > * { position: relative; z-index: 2; }
+  .A .hero { padding: 18px; }
+  .A .kick { font-size: 12.5px; font-weight: 600; color: var(--due); }
+  .A .hero .n { font-size: 32px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-top: 2px; }
+  .A .dek { font-size: 13.5px; margin-top: 4px; color: #B5B2A8; }
+  .A .btn { background: var(--acc); color: #10100E; border: 0; border-radius: 999px; height: 44px; padding: 0 22px; font-weight: 600; font-size: 14.5px; }
+  .A .film { position: absolute !important; inset: 0; z-index: 1 !important; opacity: var(--d, 0); clip-path: inset(0 0 0 0);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.018' numOctaves='3' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .8 0 0 0 0 .76 0 0 0 0 .66 .7 0 0 0 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 100% 100%,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .87 0 0 0 0 .78 1.1 0 0 0 -.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px,
+      rgba(200,192,170,.07); }
+  .A .cloth { position: absolute !important; z-index: 3 !important; top: -8%; left: 0; width: 8px; height: 116%; background: var(--acc); border-radius: 3px; transform: translateX(-30px) rotate(4deg); opacity: 0; box-shadow: 10px 0 22px rgba(255,255,255,.18); }
+  .A .glint { position: absolute !important; z-index: 3 !important; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.16) 50%, transparent 60%); transform: translateX(-110%); pointer-events: none; }
+  .A .plus { position: absolute !important; right: 18px; bottom: 16px; font: 700 34px "Bricolage Grotesque", sans-serif; color: var(--acc); opacity: 0; letter-spacing: -.03em; }
+  .A .li { display: flex; align-items: center; gap: 12px; padding: 13px 16px 13px 14px; margin-top: 6px; border-radius: 14px; }
+  .A .li i { width: 4px; height: 22px; border-radius: 2px; background: var(--acc); flex: none; }
+  .A .li i.mid { background: #6B6960; } .A .li i.due { background: var(--due); }
+  .A .li .n { flex: 1; font-size: 16.5px; font-weight: 600; letter-spacing: -.01em; }
+  .A .li .m { font-size: 12.5px; } .A .li .m.due { color: var(--due); }
+  .A .league { padding: 10px 16px; }
+  .A .lg.me { color: var(--acc); font-weight: 600; }
+  .A .nav { color: #6E6B64; } .A .nav .on { color: var(--acc); }
+  .A.done .hero .film { animation: wipe .95s cubic-bezier(.5,0,.3,1) forwards; }
+  .A.done .hero .cloth { animation: cloth .95s cubic-bezier(.5,0,.3,1) forwards; }
+  .A.done .hero .glint { animation: glint .7s .95s ease-out forwards; }
+  .A.done .kick { color: var(--acc); transition: color .2s .85s; }
+  .A.done .act { opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .A.done .plus { animation: plus 1.6s 1.1s ease-out forwards; }
+  @keyframes wipe { to { clip-path: inset(0 0 0 100%); } }
+  @keyframes cloth { 0% { transform: translateX(-30px) rotate(4deg); opacity: 1; } 96% { opacity: 1; } 100% { transform: translateX(350px) rotate(4deg); opacity: 0; } }
+  @keyframes glint { to { transform: translateX(110%); } }
+  @keyframes plus { 0% { opacity: 0; transform: translateY(10px); } 20%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+
+  /* ───────────── B · FILL ───────────── */
+  .B { background: #0B0B0C; color: #F2F2EF; font-family: "Schibsted Grotesk", "Segoe UI", sans-serif; --line: #2E2E31; --mute: #8E8E93; --hot: #FF5B3A; }
+  .B .top span, .B .sec { color: var(--mute); }
+  .B .card { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .B .card > * { position: relative; z-index: 2; }
+  .B .fill { position: absolute !important; inset: 0; z-index: 1 !important; width: var(--w, 0%); background: #1C1C1F; }
+  .B .hot .fill { background: var(--hot); }
+  .B .hero { padding: 18px; color: #160703; border-color: var(--hot); }
+  .B .kick { font: 500 11px "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .B .hero .n { font-size: 34px; font-weight: 700; letter-spacing: -.035em; line-height: 1.1; margin-top: 4px; }
+  .B .dek { font-size: 13.5px; margin-top: 4px; opacity: .8; }
+  .B .btn { background: #0B0B0C; color: #F2F2EF; border: 0; border-radius: 10px; height: 44px; padding: 0 20px; font-weight: 600; font-size: 14.5px; }
+  .B .li { display: flex; align-items: baseline; gap: 12px; padding: 13px 16px; margin-top: 6px; }
+  .B .li .n { flex: 1; font-size: 16.5px; font-weight: 600; letter-spacing: -.01em; }
+  .B .li .m { font: 400 11.5px "IBM Plex Mono", monospace; color: var(--mute); }
+  .B .li.hot { border-color: #7A2C1C; } .B .li.hot .fill { background: #5A2114; } .B .li.hot .m { color: #FFB5A3; }
+  .B .league { padding: 10px 16px; }
+  .B .lg { color: #C9C9C6; } .B .lg.me { color: #fff; font-weight: 700; }
+  .B .lg span:last-child { font: 400 12.5px "IBM Plex Mono", monospace; }
+  .B .nav { color: #6A6A6F; border-top: 1px solid var(--line); } .B .nav .on { color: #F2F2EF; }
+  .B.done .hero .fill { width: 0; transition: width .9s cubic-bezier(.6,0,.2,1); }
+  .B.done .hero { color: #F2F2EF; border-color: var(--line); transition: color .5s .3s, border-color .4s .7s; }
+  .B.done .act { opacity: 0; pointer-events: none; transition: opacity .15s; }
+
+  /* ───────────── C · ROOMS ───────────── */
+  .C { background: #101011; color: #F6F1E7; font-family: "DM Sans", "Segoe UI", sans-serif; --mute: #8F8C86; }
+  .C .top span, .C .sec { color: var(--mute); }
+  .C .card { position: relative; border-radius: 18px; overflow: hidden; background: #29282A; }
+  .C .card > * { position: relative; z-index: 2; }
+  .C .hue { position: absolute !important; inset: 0; z-index: 1 !important; background: var(--c); filter: saturate(var(--s, 1)) brightness(var(--b, 1)); }
+  .C .hero { padding: 18px; }
+  .C .hero .hue { filter: none; clip-path: circle(0 at 76px 168px); }
+  .C .kick { font-size: 12.5px; font-weight: 600; opacity: .85; }
+  .C .hero .n { font-size: 32px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-top: 2px; }
+  .C .dek { font-size: 13.5px; margin-top: 4px; opacity: .8; }
+  .C .btn { background: #F6F1E7; color: #171614; border: 0; border-radius: 999px; height: 44px; padding: 0 22px; font-weight: 700; font-size: 14.5px; }
+  .C .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .C .sm { height: 76px; padding: 11px 14px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 14px; }
+  .C .sm .n { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+  .C .sm .m { font-size: 12px; opacity: .8; }
+  .C .league { padding: 10px 16px; background: #1B1B1C; }
+  .C .lg { color: #CFCAC0; } .C .lg.me { color: #fff; font-weight: 700; }
+  .C .nav { color: #6F6C67; } .C .nav .on { color: #F6F1E7; font-weight: 700; }
+  .C.done .hero .hue { clip-path: circle(150% at 76px 168px); transition: clip-path 1s cubic-bezier(.5,0,.2,1); }
+  .C.done .act { opacity: 0; pointer-events: none; transition: opacity .2s; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>ChoreWars: dark, with cards</h1>
+  <p>Cards stay. What changes is the colour, the type and what a card does when its area gets dirty or clean. No emoji, no gradients, no glows. Press the main button to see the done moment.</p>
+  <div class="row">
+
+    <!-- A -->
+    <div class="col">
+      <h2>A · Glove</h2>
+      <div class="tag">black and rubber-glove yellow · dust wipes off</div>
+      <div class="phone"><div class="screen A" id="A">
+        <div class="body">
+          <div class="top"><b>Flat 4B</b><span>Round 6 · 42 pts · 2nd</span></div>
+          <div class="card hero" style="--d:1">
+            <div class="film"></div><div class="cloth"></div><div class="glint"></div>
+            <div class="kick" data-done="Clean, just now">Your turn</div>
+            <div class="n">Kitchen</div>
+            <div class="dek" data-done="Wiped by you at 18:42. Arjun is up next.">Priya flagged it 2h ago. Last cleaned 4 days ago.</div>
+            <div class="act"><button class="btn" onclick="done('A')">Mark clean</button><button class="link">Looks fine to me</button></div>
+            <div class="plus">+10</div>
+          </div>
+          <div class="sec">The house</div>
+          <div class="card li" style="--d:.8"><div class="film"></div><i class="due"></i><span class="n">Balcony</span><span class="m due">Arjun's turn · 6d</span></div>
+          <div class="card li" style="--d:.4"><div class="film"></div><i class="mid"></i><span class="n">Living room</span><span class="m">3d</span></div>
+          <div class="card li"><i></i><span class="n">Hallway</span><span class="m">2d</span></div>
+          <div class="card li"><i></i><span class="n">Bathroom</span><span class="m">1d</span></div>
+          <div class="sec">This round</div>
+          <div class="card league">
+            <div class="lg"><span>1</span><span>Priya</span><span>58</span></div>
+            <div class="lg me"><span>2</span><span>Thomas</span><span data-done="52">42</span></div>
+            <div class="lg"><span>3</span><span>Arjun</span><span>31</span></div>
+          </div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('A')">reset</button>
+      <div class="sw"><span style="background:#0C0C0B;color:#fff">black</span><span style="background:#191917;color:#fff">card</span><span style="background:#ECEAE0">chalk</span><span style="background:#D8F23A">glove</span><span style="background:#FF7A4D">due</span></div>
+      <ul class="notes">
+        <li>Night Shift's colours on ordinary rounded cards. A neglected card gathers a faint film of dust.</li>
+        <li><b>Done:</b> a cloth wipes the dust off the card, a glint follows, +10 floats up. This is your original idea.</li>
+      </ul>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <h2>B · Fill</h2>
+      <div class="tag">outlined cards · the fill is the dirt level</div>
+      <div class="phone"><div class="screen B" id="B">
+        <div class="body">
+          <div class="top"><b>Flat 4B</b><span>Round 6 · 42 pts · 2nd</span></div>
+          <div class="card hero hot" style="--w:100%">
+            <div class="fill"></div>
+            <div class="kick" data-done="Clean · just now">Your turn</div>
+            <div class="n">Kitchen</div>
+            <div class="dek" data-done="Ten points to you. Arjun is up next.">Priya flagged it 2h ago. Last cleaned 4 days ago.</div>
+            <div class="act"><button class="btn" onclick="done('B')">Mark clean</button><button class="link">Looks fine to me</button></div>
+          </div>
+          <div class="sec">The house</div>
+          <div class="card li hot" style="--w:100%"><div class="fill"></div><span class="n">Balcony</span><span class="m">ARJUN'S TURN · 6D</span></div>
+          <div class="card li" style="--w:55%"><div class="fill"></div><span class="n">Living room</span><span class="m">3D</span></div>
+          <div class="card li" style="--w:32%"><div class="fill"></div><span class="n">Hallway</span><span class="m">2D</span></div>
+          <div class="card li" style="--w:12%"><div class="fill"></div><span class="n">Bathroom</span><span class="m">1D</span></div>
+          <div class="sec">This round</div>
+          <div class="card league">
+            <div class="lg"><span>1</span><span>Priya</span><span>58</span></div>
+            <div class="lg me"><span>2</span><span>Thomas</span><span data-done="52">42</span></div>
+            <div class="lg"><span>3</span><span>Arjun</span><span>31</span></div>
+          </div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('B')">reset</button>
+      <div class="sw"><span style="background:#0B0B0C;color:#fff">black</span><span style="background:#2E2E31;color:#fff">outline</span><span style="background:#1C1C1F;color:#fff">fill</span><span style="background:#F2F2EF">white</span><span style="background:#FF5B3A">flagged</span></div>
+      <ul class="notes">
+        <li>Cards are thin outlines. Each one slowly fills up from the left as days pass; a flagged area is a full block of red.</li>
+        <li><b>Done:</b> the red drains out of the card and it returns to an empty outline.</li>
+        <li>Strongest hierarchy: the one thing that needs you is the only solid shape on screen.</li>
+      </ul>
+    </div>
+
+    <!-- C -->
+    <div class="col">
+      <h2>C · Rooms</h2>
+      <div class="tag">each room has its own colour · dirt drains it</div>
+      <div class="phone"><div class="screen C" id="C">
+        <div class="body">
+          <div class="top"><b>Flat 4B</b><span>Round 6 · 42 pts · 2nd</span></div>
+          <div class="card hero" style="--c:#A8492A">
+            <div class="hue"></div>
+            <div class="kick" data-done="Clean, just now">Your turn</div>
+            <div class="n">Kitchen</div>
+            <div class="dek" data-done="Ten points to you. Arjun is up next.">Priya flagged it 2h ago. Last cleaned 4 days ago.</div>
+            <div class="act"><button class="btn" onclick="done('C')">Mark clean</button><button class="link">Looks fine to me</button></div>
+          </div>
+          <div class="sec">The house</div>
+          <div class="grid">
+            <div class="card sm" style="--c:#1D6A72"><div class="hue"></div><span class="n">Bathroom</span><span class="m">Clean · 1d</span></div>
+            <div class="card sm" style="--c:#6A3F78;--s:.8;--b:.92"><div class="hue"></div><span class="n">Hallway</span><span class="m">Clean · 2d</span></div>
+            <div class="card sm" style="--c:#8A7420;--s:.4;--b:.72"><div class="hue"></div><span class="n">Living room</span><span class="m">Getting dusty · 3d</span></div>
+            <div class="card sm" style="--c:#3C6E3A;--s:.06;--b:.62"><div class="hue"></div><span class="n">Balcony</span><span class="m">Arjun's turn · 6d</span></div>
+          </div>
+          <div class="sec">This round</div>
+          <div class="card league">
+            <div class="lg"><span>1</span><span>Priya</span><span>58</span></div>
+            <div class="lg me"><span>2</span><span>Thomas</span><span data-done="52">42</span></div>
+            <div class="lg"><span>3</span><span>Arjun</span><span>31</span></div>
+          </div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('C')">reset</button>
+      <div class="sw"><span style="background:#A8492A;color:#fff">kitchen</span><span style="background:#1D6A72;color:#fff">bath</span><span style="background:#6A3F78;color:#fff">hall</span><span style="background:#8A7420;color:#fff">living</span><span style="background:#3C6E3A;color:#fff">balcony</span><span style="background:#29282A;color:#fff">dirty</span></div>
+      <ul class="notes">
+        <li>Colour replaces the emoji as each room's identity. A clean room is in full colour; it greys out as it gets dirty.</li>
+        <li><b>Done:</b> the room's colour floods back into the card from the button.</li>
+        <li>The most colourful option, but every colour is muted and has a job.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  const timers = {}, swap = { A: 850, B: 500, C: 450 };
+  function done(id) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('done')) return;
+    el.classList.add('done');
+    timers[id] = setTimeout(() => el.querySelectorAll('[data-done]').forEach(n => { n.dataset.orig = n.innerHTML; n.innerHTML = n.dataset.done; }), swap[id]);
+  }
+  function reset(id) {
+    clearTimeout(timers[id]);
+    const el = document.getElementById(id);
+    el.classList.remove('done');
+    el.querySelectorAll('[data-orig]').forEach(n => { n.innerHTML = n.dataset.orig; delete n.dataset.orig; });
+  }
+  if (location.hash === '#done') ['A', 'B', 'C'].forEach(done);
+</script>
+</body>
+</html>

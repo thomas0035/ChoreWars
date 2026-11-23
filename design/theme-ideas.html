@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChoreWars: theme ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #d9d8d3; color: #22211e; font: 15px/1.5 "Instrument Sans", "Segoe UI", sans-serif; padding: 40px 24px 80px; }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .page > h1 { font: 600 30px/1.1 "Bricolage Grotesque", "Segoe UI", sans-serif; letter-spacing: -.02em; }
+  .page > p { max-width: 62ch; margin-top: 8px; color: #55534d; }
+  .row { display: flex; flex-wrap: wrap; gap: 40px 36px; margin-top: 36px; justify-content: center; }
+  .col { width: 372px; }
+  .col h2 { font: 600 20px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -.01em; }
+  .col .tag { font: 500 12px "IBM Plex Mono", Consolas, monospace; color: #77746c; margin-bottom: 14px; }
+  .notes { margin-top: 16px; font-size: 14px; color: #44423d; }
+  .notes li { margin: 5px 0 5px 18px; }
+  .sw { display: flex; gap: 6px; margin-top: 14px; }
+  .sw span { flex: 1; height: 44px; border-radius: 6px; border: 1px solid rgba(0,0,0,.12); font: 500 10px "IBM Plex Mono", monospace; display: flex; align-items: flex-end; padding: 4px 5px; }
+  .replay { margin-top: 12px; font: 500 12px "IBM Plex Mono", monospace; background: none; border: 1px solid #99968d; border-radius: 4px; padding: 6px 10px; cursor: pointer; color: #44423d; }
+  .replay:hover { background: rgba(0,0,0,.06); }
+
+  .phone { width: 372px; height: 760px; border-radius: 44px; border: 9px solid #17171a; overflow: hidden; position: relative; box-shadow: 0 24px 50px -22px rgba(0,0,0,.45); }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .body { flex: 1; overflow: hidden; }
+  button { font: inherit; cursor: pointer; }
+
+  /* ───────────── A · PORCELAIN ───────────── */
+  .A { background: #E6E8E3; color: #17262B; font-family: "Instrument Sans", "Segoe UI", sans-serif; }
+  .A .top { display: flex; justify-content: space-between; padding: 22px 20px 0; font: 500 11px "IBM Plex Mono", Consolas, monospace; color: #6B7A7D; letter-spacing: .02em; }
+  .A .hello { padding: 18px 20px 0; font: 600 28px/1.05 "Bricolage Grotesque", sans-serif; letter-spacing: -.025em; }
+  .A .sub { padding: 6px 20px 0; font-size: 13.5px; color: #55676B; }
+  .A .sub b { color: #17262B; font-weight: 600; }
+  .A .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 18px 14px 0; }
+  .tile { position: relative; background: #FCFCFA; border-radius: 5px; aspect-ratio: 1; padding: 12px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: inset 0 0 0 1px rgba(23,38,43,.05), inset 0 -3px 0 rgba(23,38,43,.035); }
+  .tile.big { grid-column: span 2; aspect-ratio: auto; height: 196px; padding: 14px; }
+  .tile > * { position: relative; z-index: 2; }
+  .tile .meta { display: flex; justify-content: space-between; font: 500 10.5px "IBM Plex Mono", monospace; color: #7C898B; }
+  .tile .name { font: 600 17px/1.1 "Bricolage Grotesque", sans-serif; letter-spacing: -.01em; }
+  .tile.big .name { font-size: 30px; letter-spacing: -.03em; }
+  .tile .who { font-size: 12px; color: #55676B; margin-top: 3px; }
+  .tile .grime { position: absolute; inset: 0; z-index: 1; opacity: var(--d, 0);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.022' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .34 0 0 0 0 .2 2.6 0 0 0 -1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .16 1.5 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(#DDD5C2, #D3CAB4);
+    background-size: 100% 100%, 160px, auto;
+    clip-path: inset(0 0 0 0); }
+  .tile .squeegee { position: absolute; z-index: 3; top: -8%; left: 0; width: 9px; height: 116%; background: #17262B; border-radius: 3px; transform: translateX(-30px) rotate(4deg); opacity: 0; box-shadow: 5px 0 0 rgba(31,79,216,.85), 14px 0 18px rgba(255,255,255,.7); }
+  .tile .glint { position: absolute; z-index: 3; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.95) 50%, transparent 60%); transform: translateX(-110%); pointer-events: none; }
+  .A .act { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+  .A .btn { background: #1F4FD8; color: #fff; border: 0; border-radius: 4px; height: 42px; padding: 0 20px; font-weight: 600; font-size: 14.5px; }
+  .A .link { background: none; border: 0; color: #55676B; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+  .A .state { font: 500 10.5px "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: #9A4A1C; }
+  .A .plus { position: absolute; z-index: 4; right: 16px; bottom: 16px; font: 700 34px "Bricolage Grotesque", sans-serif; color: #1F4FD8; opacity: 0; transform: translateY(10px); letter-spacing: -.03em; }
+  .A .nav { display: flex; justify-content: space-around; padding: 14px 10px 24px; background: #FCFCFA; font-size: 12.5px; font-weight: 500; color: #7C898B; box-shadow: 0 -1px 0 rgba(23,38,43,.08); }
+  .A .nav .on { color: #17262B; font-weight: 600; box-shadow: 0 -15px 0 -13px #1F4FD8; }
+
+  .A.done .big .grime { animation: wipe .95s cubic-bezier(.5,0,.3,1) forwards; }
+  .A.done .big .squeegee { animation: squeegee .95s cubic-bezier(.5,0,.3,1) forwards; }
+  .A.done .big .glint { animation: glint .7s .95s ease-out forwards; }
+  .A.done .act { opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .A.done .state { color: #1F4FD8; transition: color .2s .9s; }
+  .A.done .plus { animation: plus 1.6s 1.1s ease-out forwards; }
+  @keyframes wipe { to { clip-path: inset(0 0 0 100%); } }
+  @keyframes squeegee { 0% { transform: translateX(-30px) rotate(4deg); opacity: 1; } 96% { opacity: 1; } 100% { transform: translateX(350px) rotate(4deg); opacity: 0; } }
+  @keyframes glint { to { transform: translateX(110%); } }
+  @keyframes plus { 0% { opacity: 0; transform: translateY(10px); } 20%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+
+  /* ───────────── B · ROTA (paper) ───────────── */
+  .B { background: #F3EEE4; color: #1B1915; font-family: "Instrument Sans", "Segoe UI", sans-serif; }
+  .B .mast { margin: 22px 20px 0; padding: 7px 0; border-top: 2px solid #1B1915; border-bottom: 1px solid #1B1915; display: flex; justify-content: space-between; font: 500 10.5px "IBM Plex Mono", Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .B .lead { padding: 22px 20px 0; position: relative; }
+  .B .kicker { font: 500 10.5px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: #C8391F; }
+  .B .head { font: 400 40px/1 "Instrument Serif", Georgia, serif; letter-spacing: -.015em; margin-top: 8px; }
+  .B .head em { font-style: italic; }
+  .B .head .s { position: relative; display: inline; background: linear-gradient(#C8391F, #C8391F) no-repeat 0 58% / 0 2.5px; }
+  .B .dek { font-size: 13.5px; color: #5E594F; margin-top: 10px; }
+  .B .act { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+  .B .btn { background: #1B1915; color: #F3EEE4; border: 0; border-radius: 999px; height: 42px; padding: 0 22px; font-weight: 600; font-size: 14.5px; }
+  .B .link { background: none; border: 0; color: #1B1915; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+  .B .stamp { position: absolute; right: 22px; top: 62px; border: 3px solid #C8391F; color: #C8391F; padding: 4px 12px 2px; border-radius: 6px; font: 700 26px "Barlow Condensed", Bahnschrift, sans-serif; letter-spacing: .12em; transform: rotate(-9deg) scale(2.4); opacity: 0; mix-blend-mode: multiply;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .B h3 { margin: 24px 20px 0; padding-bottom: 6px; border-bottom: 1px solid #1B1915; font: 500 10.5px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; display: flex; justify-content: space-between; }
+  .B h3 span { color: #8A8477; }
+  .B .line { margin: 0 20px; padding: 9px 0; border-bottom: 1px solid rgba(27,25,21,.16); display: flex; align-items: baseline; gap: 10px; }
+  .B .line .n { font: 400 21px/1.1 "Instrument Serif", Georgia, serif; flex: 1; }
+  .B .line .m { font: 400 11px "IBM Plex Mono", monospace; color: #5E594F; }
+  .B .dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #1B1915; align-self: center; flex: none; }
+  .B .dot.due { background: #C8391F; border-color: #C8391F; }
+  .B .dot.mid { background: linear-gradient(90deg, #1B1915 50%, transparent 50%); }
+  .B .tally { display: inline-flex; gap: 7px; align-self: center; }
+  .B .tally svg { display: block; }
+  .B .nav { display: flex; justify-content: space-between; margin: 0 20px; padding: 13px 0 24px; border-top: 2px solid #1B1915; font: 500 10.5px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: #8A8477; }
+  .B .nav .on { color: #1B1915; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; text-decoration-color: #C8391F; }
+
+  .B.done .head .s { background-size: 100% 2.5px; transition: background-size .55s cubic-bezier(.6,0,.2,1); }
+  .B.done .head { color: #8A8477; transition: color .3s .5s; }
+  .B.done .stamp { animation: stamp .32s .7s cubic-bezier(.2,.9,.3,1.2) forwards; }
+  .B.done .lead { animation: thud .22s .95s; }
+  .B.done .act { opacity: 0; transition: opacity .2s; pointer-events: none; }
+  @keyframes stamp { 0% { opacity: 0; transform: rotate(-9deg) scale(2.4); } 100% { opacity: .92; transform: rotate(-9deg) scale(1); } }
+  @keyframes thud { 30% { transform: translateY(2px); } }
+
+  /* ───────────── C · NIGHT SHIFT ───────────── */
+  .C { background: #0F0F0D; color: #ECEAE0; font-family: "JetBrains Mono", Consolas, monospace; }
+  .C .top { display: flex; justify-content: space-between; padding: 22px 20px 12px; font-size: 10.5px; letter-spacing: .08em; color: #86857B; border-bottom: 1px solid #2A2A25; }
+  .C .top b { color: #ECEAE0; font-weight: 500; }
+  .C .hero { position: relative; padding: 20px 20px 22px; border-bottom: 1px solid #2A2A25; overflow: hidden; }
+  .C .label { font-size: 10.5px; letter-spacing: .14em; color: #FF6A3D; display: flex; align-items: center; gap: 7px; }
+  .C .label i { width: 7px; height: 7px; background: currentColor; display: block; }
+  .C .big { font: 700 84px/.86 "Barlow Condensed", Bahnschrift, sans-serif; text-transform: uppercase; letter-spacing: -.01em; margin: 10px 0 10px -3px; }
+  .C .dek { font-size: 10.5px; letter-spacing: .06em; color: #86857B; line-height: 1.7; }
+  .C .act { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 16px; }
+  .C .btn { background: #D8F23A; color: #0F0F0D; border: 0; height: 46px; font: 700 20px "Barlow Condensed", Bahnschrift, sans-serif; letter-spacing: .1em; text-transform: uppercase; border-radius: 2px; }
+  .C .ghost { background: none; color: #ECEAE0; border: 1px solid #45453E; height: 46px; padding: 0 14px; font: 600 15px "Barlow Condensed", Bahnschrift, sans-serif; letter-spacing: .1em; text-transform: uppercase; border-radius: 2px; }
+  .C .sweep { position: absolute; inset: 0; background: #D8F23A; transform: translateX(-101%); z-index: 3; }
+  .C .score { position: absolute; right: 20px; top: 20px; text-align: right; font-size: 10.5px; letter-spacing: .08em; color: #86857B; }
+  .C .score b { display: block; font: 600 30px/1 "Barlow Condensed", Bahnschrift, sans-serif; color: #ECEAE0; letter-spacing: 0; }
+  .C h3 { padding: 14px 20px 6px; font-size: 10px; font-weight: 400; letter-spacing: .14em; color: #86857B; display: flex; justify-content: space-between; }
+  .C .r { display: grid; grid-template-columns: 38px 1fr 68px 34px 54px; align-items: center; padding: 8px 20px; border-top: 1px solid #1F1F1B; font-size: 11.5px; letter-spacing: .04em; }
+  .C .r .c { color: #86857B; }
+  .C .r .a { font: 600 18px/1 "Barlow Condensed", Bahnschrift, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+  .C .r .w, .C .r .t { color: #86857B; }
+  .C .r .s { text-align: right; perspective: 200px; }
+  .C .r .s span { display: inline-block; transform-origin: 50% 50%; }
+  .C .hot { color: #FF6A3D; } .C .ok { color: #D8F23A; } .C .dim { color: #86857B; }
+  .C .bar { height: 3px; background: #2A2A25; margin-top: 5px; } .C .bar i { display: block; height: 100%; background: #ECEAE0; }
+  .C .st { display: grid; grid-template-columns: 22px 1fr 34px; gap: 0 8px; padding: 7px 20px; font-size: 11.5px; letter-spacing: .06em; align-items: baseline; }
+  .C .st .me i { background: #D8F23A; }
+  .C .st .p { text-align: right; }
+  .C .nav { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid #2A2A25; padding: 0 0 12px; font: 600 14px "Barlow Condensed", Bahnschrift, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #86857B; text-align: center; }
+  .C .nav span { padding: 14px 0; border-top: 2px solid transparent; margin-top: -1px; }
+  .C .nav .on { color: #D8F23A; border-color: #D8F23A; }
+
+  .C.done .sweep { animation: sweep .9s cubic-bezier(.7,0,.2,1) forwards; }
+  .C.done .act { visibility: hidden; transition: visibility 0s .45s; }
+  .C.done .flip { animation: flip .5s .75s both; }
+  @keyframes sweep { 0% { transform: translateX(-101%); } 45%, 55% { transform: translateX(0); } 100% { transform: translateX(101%); } }
+  @keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>ChoreWars: three directions</h1>
+  <p>Same home screen, three identities. No emoji anywhere; state is carried by type, one accent colour and the surface itself. Press the main button in each phone to see the "marked as done" moment.</p>
+
+  <div class="row">
+
+    <!-- A -->
+    <div class="col">
+      <h2>A · Porcelain</h2>
+      <div class="tag">light · the house as a wall of tiles</div>
+      <div class="phone"><div class="screen A" id="A">
+        <div class="body">
+          <div class="top"><span>FLAT 4B</span><span>ROUND 6 · TURN 1 OF 2</span></div>
+          <div class="hello">Evening, Thomas.</div>
+          <div class="sub"><b>42 pts</b> this round &nbsp;·&nbsp; <b>2nd</b> &nbsp;·&nbsp; <b>5</b> in a row</div>
+          <div class="grid">
+            <div class="tile big" style="--d:1">
+              <div class="grime"></div><div class="squeegee"></div><div class="glint"></div>
+              <div class="meta"><span class="state" data-done="Clean · just now">Your turn</span><span data-done="0d">4d</span></div>
+              <div>
+                <div class="name">Kitchen</div>
+                <div class="who" data-done="Wiped by you at 18:42">Flagged by Priya, 2h ago</div>
+                <div class="act"><button class="btn" onclick="done('A')">Mark clean</button><button class="link">Looks fine to me</button></div>
+              </div>
+              <div class="plus">+10</div>
+            </div>
+            <div class="tile"><div class="grime"></div><div class="meta"><span>Clean</span><span>1d</span></div><div><div class="name">Bathroom</div></div></div>
+            <div class="tile" style="--d:.4"><div class="grime"></div><div class="meta"><span>Getting dusty</span><span>3d</span></div><div><div class="name">Living room</div></div></div>
+            <div class="tile" style="--d:.85"><div class="grime"></div><div class="meta"><span style="color:#9A4A1C">Arjun's turn</span><span>6d</span></div><div><div class="name">Balcony</div><div class="who">Flagged 5h ago</div></div></div>
+            <div class="tile" style="--d:.12"><div class="grime"></div><div class="meta"><span>Clean</span><span>2d</span></div><div><div class="name">Hallway</div></div></div>
+          </div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('A')">reset</button>
+      <div class="sw">
+        <span style="background:#E6E8E3">grout</span><span style="background:#FCFCFA">glaze</span><span style="background:#D3CAB4">grime</span><span style="background:#1F4FD8;color:#fff">cobalt</span><span style="background:#17262B;color:#fff">ink</span>
+      </div>
+      <ul class="notes">
+        <li><b>Dirt is the status.</b> Tiles get visibly grubbier the longer since the last clean, so no status pills are needed.</li>
+        <li><b>Done:</b> a squeegee wipes the grime off, the glaze catches a glint, +10 floats up. Could also be a real swipe-to-wipe gesture.</li>
+        <li>Bricolage Grotesque + Instrument Sans. One accent, used only for actions.</li>
+      </ul>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <h2>B · The Rota</h2>
+      <div class="tag">light · the paper list on the fridge</div>
+      <div class="phone"><div class="screen B" id="B">
+        <div class="body">
+          <div class="mast"><span>Flat 4B Rota</span><span>Mon 23 Nov</span></div>
+          <div class="lead">
+            <div class="kicker" data-done="Done · 18:42">Your turn</div>
+            <div class="head"><span class="s">The kitchen is <em>yours,</em> Thomas.</span></div>
+            <div class="dek" data-done="Ten points to you. Arjun is up next for the kitchen.">Priya flagged it two hours ago. Last cleaned on Thursday.</div>
+            <div class="act"><button class="btn" onclick="done('B')">Mark as done</button><button class="link">Looks fine to me</button></div>
+            <div class="stamp">CLEAN</div>
+          </div>
+          <h3>The house <span>last cleaned</span></h3>
+          <div class="line"><i class="dot due"></i><span class="n">Balcony</span><span class="m">Arjun's turn · 6d</span></div>
+          <div class="line"><i class="dot mid"></i><span class="n">Living room</span><span class="m">3d</span></div>
+          <div class="line"><i class="dot"></i><span class="n">Hallway</span><span class="m">2d</span></div>
+          <div class="line"><i class="dot"></i><span class="n">Bathroom</span><span class="m">1d</span></div>
+          <h3>Round six <span>cleans · pts</span></h3>
+          <div class="line"><span class="n">Priya</span><span class="tally" data-n="6"></span><span class="m">58</span></div>
+          <div class="line"><span class="n"><em>Thomas</em></span><span class="tally" data-n="4" id="Btally"></span><span class="m" data-done="52">42</span></div>
+          <div class="line"><span class="n">Arjun</span><span class="tally" data-n="3"></span><span class="m">31</span></div>
+        </div>
+        <div class="nav"><span class="on">Today</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('B')">reset</button>
+      <div class="sw">
+        <span style="background:#F3EEE4">paper</span><span style="background:#1B1915;color:#fff">ink</span><span style="background:#8A8477;color:#fff">pencil</span><span style="background:#C8391F;color:#fff">red pen</span>
+      </div>
+      <ul class="notes">
+        <li><b>No cards at all.</b> Ruled lines, a serif headline that says the one thing you need to know, mono for the facts.</li>
+        <li><b>Done:</b> red pen strikes the headline through, a rubber stamp thumps down, a new tally mark is drawn on your league line.</li>
+        <li>Cleans are tally marks; status is an empty, half or filled dot.</li>
+        <li>Instrument Serif + IBM Plex Mono.</li>
+      </ul>
+    </div>
+
+    <!-- C -->
+    <div class="col">
+      <h2>C · Night Shift</h2>
+      <div class="tag">dark · scoreboard, leans into the "Wars"</div>
+      <div class="phone"><div class="screen C" id="C">
+        <div class="body">
+          <div class="top"><span><b>FLAT 4B</b></span><span>R06 · MON 18:42</span></div>
+          <div class="hero">
+            <div class="label" id="Clabel"><i></i><span data-done="CLEAN">YOUR TURN</span></div>
+            <div class="score">PTS<b data-count="42">42</b></div>
+            <div class="big">Kitchen</div>
+            <div class="dek" data-done="DONE 18:42 · +10<br>NEXT UP: ARJUN">FLAGGED 2H AGO BY PRIYA<br>LAST CLEAN 4D</div>
+            <div class="act"><button class="btn" onclick="done('C')">Done</button><button class="ghost">Looks fine</button></div>
+            <div class="sweep"></div>
+          </div>
+          <h3><span>THE HOUSE</span><span>AGE · STATE</span></h3>
+          <div class="r"><span class="c">KIT</span><span class="a">Kitchen</span><span class="w" data-done="—">THOMAS</span><span class="t" data-done="0D">4D</span><span class="s"><span class="flip hot" id="Cflip">DIRTY</span></span></div>
+          <div class="r"><span class="c">BAL</span><span class="a">Balcony</span><span class="w">ARJUN</span><span class="t">6D</span><span class="s hot">DIRTY</span></div>
+          <div class="r"><span class="c">LVG</span><span class="a">Living room</span><span class="w">—</span><span class="t">3D</span><span class="s dim">DUSTY</span></div>
+          <div class="r"><span class="c">HAL</span><span class="a">Hallway</span><span class="w">—</span><span class="t">2D</span><span class="s ok">CLEAN</span></div>
+          <div class="r"><span class="c">BTH</span><span class="a">Bathroom</span><span class="w">—</span><span class="t">1D</span><span class="s ok">CLEAN</span></div>
+          <h3 style="border-top:1px solid #2A2A25;margin-top:4px"><span>ROUND 06</span><span>PTS</span></h3>
+          <div class="st"><span class="dim">1</span><span>PRIYA<div class="bar"><i style="width:100%"></i></div></span><span class="p">58</span></div>
+          <div class="st"><span class="dim">2</span><span class="me">THOMAS<div class="bar"><i id="Cbar" style="width:72%;transition:width .6s .8s"></i></div></span><span class="p" data-count="42">42</span></div>
+          <div class="st"><span class="dim">3</span><span>ARJUN<div class="bar"><i style="width:53%"></i></div></span><span class="p">31</span></div>
+        </div>
+        <div class="nav"><span class="on">Home</span><span>Areas</span><span>League</span><span>Stock</span><span>You</span></div>
+      </div></div>
+      <button class="replay" onclick="reset('C')">reset</button>
+      <div class="sw">
+        <span style="background:#0F0F0D;color:#fff">soot</span><span style="background:#2A2A25;color:#fff">rule</span><span style="background:#ECEAE0">chalk</span><span style="background:#D8F23A">glove</span><span style="background:#FF6A3D">dirty</span>
+      </div>
+      <ul class="notes">
+        <li><b>Warm black, square corners, no shadows or glows.</b> Rubber-glove yellow means clean or act; orange means dirty. Nothing else is coloured.</li>
+        <li><b>Done:</b> a yellow block sweeps the hero clean, the board cell flips DIRTY to CLEAN, your score counts up.</li>
+        <li>Three-letter area codes replace icons.</li>
+        <li>Barlow Condensed + JetBrains Mono.</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // tally marks for theme B
+  function tally(el, n, animateLast) {
+    el.innerHTML = '';
+    for (let g = 0; g < Math.ceil(n / 5); g++) {
+      const k = Math.min(5, n - g * 5);
+      let s = '';
+      for (let i = 0; i < Math.min(k, 4); i++) s += `<line x1="${3 + i * 5}" y1="2" x2="${2.4 + i * 5}" y2="16"/>`;
+      if (k === 5) s += '<line x1="0" y1="13" x2="21" y2="5"/>';
+      el.insertAdjacentHTML('beforeend', `<svg width="21" height="18" viewBox="0 0 21 18" fill="none" stroke="#1B1915" stroke-width="1.5" stroke-linecap="round">${s}</svg>`);
+    }
+    if (animateLast) {
+      const last = el.querySelector('svg:last-child line:last-child');
+      last.setAttribute('stroke', '#C8391F');
+      last.style.strokeDasharray = 24; last.style.strokeDashoffset = 24;
+      last.getBoundingClientRect();
+      last.style.transition = 'stroke-dashoffset .35s'; last.style.strokeDashoffset = 0;
+    }
+  }
+  document.querySelectorAll('.tally').forEach(t => tally(t, +t.dataset.n));
+
+  const timers = {};
+  const later = (id, fn, ms) => (timers[id] = timers[id] || []).push(setTimeout(fn, ms));
+  const swapDelay = { A: 850, B: 1000, C: 450 };
+
+  function done(id) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('done')) return;
+    el.classList.add('done');
+    later(id, () => {
+      el.querySelectorAll('[data-done]').forEach(n => { n.dataset.orig = n.innerHTML; n.innerHTML = n.dataset.done; });
+      if (id === 'C') {
+        document.getElementById('Clabel').style.color = '#D8F23A';
+        document.getElementById('Cbar').style.width = '90%';
+        el.querySelectorAll('[data-count]').forEach(n => { let v = 42; const t = setInterval(() => { n.textContent = ++v; if (v >= 52) clearInterval(t); }, 55); timers[id].push(t); });
+      }
+    }, swapDelay[id]);
+    if (id === 'C') later(id, () => { const f = document.getElementById('Cflip'); f.textContent = 'CLEAN'; f.className = 'flip ok'; }, 1000);
+    if (id === 'B') later(id, () => tally(document.getElementById('Btally'), 5, true), 1250);
+  }
+
+  function reset(id) {
+    (timers[id] || []).forEach(t => { clearTimeout(t); clearInterval(t); }); timers[id] = [];
+    const el = document.getElementById(id);
+    el.classList.remove('done');
+    el.querySelectorAll('[data-orig]').forEach(n => { n.innerHTML = n.dataset.orig; delete n.dataset.orig; });
+    if (id === 'C') {
+      document.getElementById('Clabel').style.color = ''; document.getElementById('Cbar').style.width = '72%';
+      const f = document.getElementById('Cflip'); f.textContent = 'DIRTY'; f.className = 'flip hot';
+      el.querySelectorAll('[data-count]').forEach(n => n.textContent = 42);
+    }
+    if (id === 'B') tally(document.getElementById('Btally'), 4);
+  }
+</script>
+</body>
+</html>

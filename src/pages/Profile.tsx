@@ -50,11 +50,11 @@ export function ProfilePage() {
       <div className="flex items-center gap-4">
         <Avatar name={person.name} url={person.avatar_url} size="xl" crown={person.id === champ} />
         <div className="min-w-0 flex-1">
-          <h1 className="text-3xl font-extrabold tracking-tight truncate">{person.name}</h1>
+          <h1 className="text-3xl font-bold truncate">{person.name}</h1>
           <p className="text-slate-400 text-sm">
             {person.role === 'admin' ? 'Admin' : 'Member'}
-            {person.away && <span className="text-amber-200"> · ✈️ Away</span>}
-            {s?.round_rank && <> · 🏆 Rank #{s.round_rank} this round</>}
+            {person.away && <span className="text-amber-200"> · Away</span>}
+            {s?.round_rank && <> · Rank #{s.round_rank} this round</>}
           </p>
         </div>
       </div>
@@ -62,18 +62,18 @@ export function ProfilePage() {
       {stats.error && <div className="mt-4"><ErrorBox error={stats.error} retry={() => stats.refetch()} /></div>}
 
       <div className="grid grid-cols-3 gap-2 mt-5">
-        <Big icon="⭐" value={s?.round_points ?? '—'} label="this round" />
-        <Big icon="💎" value={s?.total_points ?? '—'} label="all time" />
-        <Big icon="🔥" value={s?.current_streak ?? '—'} label="streak" />
+        <Big value={s?.round_points ?? '—'} label="this round" />
+        <Big value={s?.total_points ?? '—'} label="all time" />
+        <Big value={s?.current_streak ?? '—'} label="streak" />
       </div>
 
       <SectionTitle>Cleaning stats</SectionTitle>
       <Card className="divide-y divide-line py-1">
         <Line label="Normal completions" value={s?.normal_completions} />
-        <Line label="Rescues 🦸" value={s?.rescues} />
-        <Line label="Round wins 🥇" value={s?.round_wins} />
-        <Line label="Weekly wins 👑" value={s?.weekly_wins} />
-        <Line label="Skip passes 🎟️" value={s?.skip_passes} />
+        <Line label="Rescues" value={s?.rescues} />
+        <Line label="Round wins" value={s?.round_wins} />
+        <Line label="Weekly wins" value={s?.weekly_wins} />
+        <Line label="Skip passes" value={s?.skip_passes} />
         <Line label="Longest streak" value={s?.longest_streak} />
         <Line label="This week" value={s ? `${s.weekly_points} pts` : undefined} />
         <Line label="Turns this round" value={s ? `${Math.min(s.round_turns, s.round_turns_needed)}/${s.round_turns_needed}` : undefined} />
@@ -95,10 +95,10 @@ export function ProfilePage() {
         {(allAchievements.data ?? []).map((a) => {
           const got = earned.get(a.id)
           return (
-            <div key={a.id} className={cx('rounded-3xl border p-3.5 flex gap-3 items-start', got ? 'bg-amber-300/10 border-amber-300/25' : 'bg-card border-line opacity-60')}>
-              <span className={cx('text-2xl', !got && 'grayscale')}>{a.icon}</span>
+            <div key={a.id} className={cx('rounded-2xl bg-card p-3.5 flex gap-3 items-start', !got && 'opacity-50')}>
+              <span className={cx('h-8 w-1 rounded-full shrink-0', got ? 'bg-butter' : 'bg-slate-600')} />
               <div className="min-w-0">
-                <div className="font-semibold text-sm leading-tight">{a.name}</div>
+                <div className={cx('font-semibold text-sm leading-tight', got && 'text-butter')}>{a.name}</div>
                 <div className="text-xs text-slate-400 mt-0.5">{got ? `Earned ${format(new Date(got.earned_at!), 'd MMM')}` : a.description}</div>
               </div>
             </div>
@@ -211,12 +211,11 @@ function NotificationsCard() {
   )
 }
 
-function Big({ icon, value, label }: { icon: string; value: number | string; label: string }) {
+function Big({ value, label }: { value: number | string; label: string }) {
   return (
-    <Card className="text-center py-3 px-2">
-      <div className="text-lg">{icon}</div>
-      <div className="text-2xl font-black tabular-nums leading-tight">{value}</div>
-      <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{label}</div>
+    <Card className="py-3 px-3.5">
+      <div className="font-display text-[28px] font-bold tabular-nums leading-tight">{value}</div>
+      <div className="text-xs text-slate-500">{label}</div>
     </Card>
   )
 }

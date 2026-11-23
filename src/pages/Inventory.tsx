@@ -96,7 +96,7 @@ export function InventoryPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-2xl font-extrabold tracking-tight">Stock</h1>
+        <h1 className="text-2xl font-bold">Stock</h1>
         <Button size="sm" onClick={() => setAdding(true)}><Plus className="h-4 w-4" /> I bought something</Button>
       </div>
       <p className="text-slate-400 text-sm mb-4">Food and things bought for the house. Log what you take; you pay the buyer for your share.</p>
@@ -105,8 +105,7 @@ export function InventoryPage() {
 
       <SectionTitle>In stock</SectionTitle>
       {open.length === 0 ? (
-        <Card className="text-center py-8">
-          <div className="text-4xl mb-2">🧺</div>
+        <Card className="py-6">
           <p className="text-slate-400 text-sm">Nothing here yet. Bought something for the house? Add it.</p>
         </Card>
       ) : (
@@ -151,7 +150,6 @@ export function InventoryPage() {
             <Card className="py-2 divide-y divide-line">
               {data.payments.map((p) => (
                 <div key={p.id} className="flex items-center gap-3 py-2.5">
-                  <span className="text-lg">💸</span>
                   <div className="flex-1 min-w-0 text-sm">
                     <div><b>{nameOf(p.from_user)}</b> paid <b>{nameOf(p.to_user)}</b> <span className="text-emerald-300 font-semibold">{formatRupees(p.amount_paise)}</span></div>
                     <div className="text-xs text-slate-500">{format(new Date(p.created_at), 'd MMM, h:mm a')}{p.note && ` · ${p.note}`}</div>
@@ -191,21 +189,21 @@ function BalancesCard({ balances, meId, memberById, nameOf, onReceive }: {
   return (
     <Card className="py-3">
       {iOwe.length === 0 && owedToMe.length === 0 ? (
-        <p className="text-sm text-slate-300 py-1">✅ You're all square. Nobody owes you and you owe nobody.</p>
+        <p className="text-sm text-slate-300 py-1">You're all square. Nobody owes you and you owe nobody.</p>
       ) : (
         <div className="space-y-1">
           {iOwe.map((b) => (
             <div key={b.creditor} className="flex items-center gap-3 py-1.5">
               <Avatar name={nameOf(b.creditor)} url={memberById.get(b.creditor)?.avatar_url} size="sm" />
               <div className="flex-1 min-w-0 text-sm">You owe <b>{nameOf(b.creditor)}</b></div>
-              <span className="font-extrabold tabular-nums text-rose-300">{formatRupees(b.amount_paise)}</span>
+              <span className="font-bold tabular-nums text-rose-300">{formatRupees(b.amount_paise)}</span>
             </div>
           ))}
           {owedToMe.map((b) => (
             <div key={b.debtor} className="flex items-center gap-3 py-1.5">
               <Avatar name={nameOf(b.debtor)} url={memberById.get(b.debtor)?.avatar_url} size="sm" />
               <div className="flex-1 min-w-0 text-sm"><b>{nameOf(b.debtor)}</b> owes you</div>
-              <span className="font-extrabold tabular-nums text-emerald-300">{formatRupees(b.amount_paise)}</span>
+              <span className="font-bold tabular-nums text-emerald-300">{formatRupees(b.amount_paise)}</span>
               <Button size="sm" variant="secondary" onClick={() => onReceive(b)}>Received</Button>
             </div>
           ))}
@@ -332,7 +330,7 @@ function ItemCard({ item, takes, meId, memberById, nameOf, onOpen, onStep }: {
 
       <button className="block w-full text-left mt-2.5" onClick={onOpen}>
         <div className="h-1.5 rounded-full bg-card-2 overflow-hidden">
-          <div className={cx('h-full rounded-full', pct > 25 ? 'bg-emerald-400' : 'bg-amber-300')} style={{ width: `${pct}%` }} />
+          <div className={cx('h-full rounded-full', pct > 25 ? 'bg-butter' : 'bg-coral')} style={{ width: `${pct}%` }} />
         </div>
         <div className="flex items-center justify-between gap-2 mt-1.5">
           <span className="text-xs text-slate-400 tabular-nums">{formatQty(item.remaining_qty, item.unit)} of {formatQty(item.total_qty, item.unit)} left</span>
@@ -417,7 +415,7 @@ function ItemDetailSheet({ item, takes, meId, isAdmin, memberById, nameOf, onClo
           )}
 
           <div>
-            <h4 className="text-[11px] font-bold tracking-[0.18em] uppercase text-slate-400 mb-2 px-1">Who took what</h4>
+            <h4 className="text-[13px] font-medium text-slate-400 mb-2 px-1">Who took what</h4>
             {who.length === 0 ? (
               <p className="text-sm text-slate-500 px-1">Nobody has taken any yet.</p>
             ) : (
@@ -586,7 +584,7 @@ function ItemFormSheet({ open, item, onClose }: { open: boolean; item?: Inventor
 
 function Collapser({ open, onToggle, children }: { open: boolean; onToggle: () => void; children: ReactNode }) {
   return (
-    <button onClick={onToggle} className="flex items-center gap-1.5 px-1 mt-6 mb-2 text-[11px] font-bold tracking-[0.18em] uppercase text-slate-400 hover:text-slate-200">
+    <button onClick={onToggle} className="flex items-center gap-1.5 px-1 mt-6 mb-2 text-[13px] font-medium text-slate-400 hover:text-slate-200">
       <ChevronRight className={cx('h-3.5 w-3.5 transition-transform', open && 'rotate-90')} />
       {children}
     </button>

@@ -1,11 +1,63 @@
 @import "tailwindcss";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/bricolage-grotesque";
 
+/*
+ * Theme: warm black, chalk text, one butter-yellow accent, coral for "needs doing".
+ * The stock Tailwind colour families used across the app are remapped here so every
+ * page shares the palette: slate = neutrals, emerald/sky/amber = butter, rose/orange = coral.
+ */
 @theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --color-surface: #0b1220;
-  --color-card: #121b2f;
-  --color-card-2: #182339;
-  --color-line: rgba(148, 163, 184, 0.14);
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-surface: #0c0c0b;
+  --color-card: #191917;
+  --color-card-2: #232320;
+  --color-line: rgba(236, 234, 224, 0.09);
+  --color-ink: #eceae0;
+  --color-butter: #ebd98a;
+  --color-on-butter: #1b1707;
+  --color-coral: #ff7a4d;
+
+  --color-slate-100: #eceae0;
+  --color-slate-200: #d9d6cb;
+  --color-slate-300: #b5b2a8;
+  --color-slate-400: #8b897f;
+  --color-slate-500: #6e6b64;
+  --color-slate-600: #4a4843;
+  --color-slate-700: #33322e;
+  --color-slate-800: #232320;
+  --color-slate-900: #151514;
+  --color-slate-950: #0c0c0b;
+
+  --color-emerald-100: #f7f0cf;
+  --color-emerald-200: #f1e5ac;
+  --color-emerald-300: #ebd98a;
+  --color-emerald-400: #ebd98a;
+  --color-emerald-500: #d9c570;
+  --color-emerald-950: #1b1707;
+
+  --color-sky-200: #f1e5ac;
+  --color-sky-300: #ebd98a;
+  --color-sky-400: #ebd98a;
+
+  --color-amber-200: #f1e5ac;
+  --color-amber-300: #ebd98a;
+
+  --color-rose-100: #ffe1d6;
+  --color-rose-200: #ffc2ad;
+  --color-rose-300: #ff9c7a;
+  --color-rose-400: #ff7a4d;
+  --color-rose-500: #ff7a4d;
+
+  --color-orange-300: #ff9c7a;
+  --color-orange-400: #ff8a62;
+  --color-orange-500: #ff7a4d;
+
+  --radius-2xl: 0.875rem;
+  --radius-3xl: 1.125rem;
+
   --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
   @keyframes pulse-soft {
     0%, 100% { opacity: 1; }
@@ -42,8 +94,13 @@ body {
 
 /* In @layer base so Tailwind utilities (e.g. w-16) can override these defaults. */
 @layer base {
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
   input, select, textarea {
-    @apply bg-card-2 text-slate-100 placeholder:text-slate-500 rounded-2xl px-4 h-12 w-full border border-line outline-none focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20;
+    @apply bg-card-2 text-slate-100 placeholder:text-slate-500 rounded-2xl px-4 h-12 w-full border border-line outline-none focus:border-butter/60 focus:ring-2 focus:ring-butter/15;
   }
   select { appearance: none; }
   textarea { @apply h-auto py-3; }
