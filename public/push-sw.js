@@ -11,8 +11,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'ChoreWars', {
       body: data.body || '',
-      icon: '/icon.svg',
-      badge: '/icon.svg',
+      icon: '/pwa-192x192.png',
+      badge: '/badge-96x96.png',
       tag: data.tag,
       renotify: Boolean(data.tag),
       data: { url: data.url || '/' },
