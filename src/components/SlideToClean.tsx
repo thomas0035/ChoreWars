@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { motion } from 'motion/react'
-import { ChevronRight } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
 import { completeCleaning } from '@/lib/api'
 import { friendlyError } from '@/lib/errors'
 import type { AreaView } from '@/lib/status'
 import type { CompletionResult } from '@/lib/types'
-import { Spinner, cx, useToast } from './ui'
+import { cx, useToast } from './ui'
+import { Face } from './Face'
 
 const KNOB = 48
 /** How long the finished card stays on screen before it leaves. */
@@ -100,18 +100,52 @@ export function SlideToClean({ onComplete, label = 'Slide to clean', className }
         type="button"
         aria-label={label}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onKeyDown={onKey}
-        className="absolute top-0 left-0 h-12 w-12 rounded-full bg-butter text-on-butter grid place-items-center touch-none cursor-grab active:cursor-grabbing"
+        className="absolute top-0 left-0 h-12 w-12 rounded-full touch-none cursor-grab active:cursor-grabbing"
         style={{ transform: `translateX(${x}px)`, transition: ease }}
       >
-        {busy ? <Spinner className="h-4 w-4" /> : <ChevronRight className="h-5 w-5" strokeWidth={2.5} />}
+        {/* The knob is a face: it perks up as you drag and grins once you get there. */}
+        <Face size={KNOB} mood={busy ? 'grin' : dragging || x > 0 ? 'happy' : 'smile'} seed="knob" />
       </button>
     </div>
   )
 }
 
+const CONFETTI_COLORS = ['#ebd98a', '#ff7a4d', '#a9d3ee', '#eceae0', '#a8e0b0']
+
+/** Paper bits that burst from where the knob landed. Drawn outside the card, so the card must not clip. */
+function Confetti() {
+  const bits = useMemo(() => Array.from({ length: 36 }, (_, i) => {
+    const angle = Math.random() * Math.PI * 2
+    const dist = 70 + Math.random() * 160
+    return {
+      id: i,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length]!,
+      round: i % 3 === 0,
+      dx: Math.cos(angle) * dist,
+      dy: Math.sin(angle) * dist - 40,
+      rot: Math.random() * 720 - 360,
+    }
+  }), [])
+  return (
+    <div className="absolute z-20 pointer-events-none" style={{ left: '88%', top: '76%' }} aria-hidden="true">
+      {bits.map((b) => (
+        <motion.i
+          key={b.id}
+          className="absolute block h-[9px] w-[9px]"
+          style={{ background: b.color, borderRadius: b.round ? '50%' : 2 }}
+          initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
+          animate={{ x: b.dx, y: b.dy, rotate: b.rot, opacity: [0, 1, 1, 0] }}
+          transition={{ duration: 1.1, delay: 0.25, ease: [0.1, 0.7, 0.3, 1], times: [0, 0.05, 0.7, 1] }}
+        />
+      ))}
+    </div>
+  )
+}
+
 /**
- * The finished state: butter floods the card from where the knob landed and the points pop in.
- * Render inside a `relative overflow-hidden` card.
+ * The finished state: butter floods the card from where the knob landed, confetti bursts out
+ * and the points slam down like a stamp. Render inside a `relative` card that does NOT clip
+ * (no overflow-hidden), so the confetti can leave it.
  */
 export function DoneFlood({ result, onDismiss }: { result: CompletionResult; onDismiss?: () => void }) {
   const rescue = result.completion_type === 'volunteer'
@@ -122,12 +156,14 @@ export function DoneFlood({ result, onDismiss }: { result: CompletionResult; onD
     streak_bonus > 0 && `+${streak_bonus} streak bonus`,
     !rescue && result.streak > 1 && `${result.streak} in a row`,
   ].filter(Boolean)
+  const calm = useReducedMotion()
 
   return (
+    <>
     <motion.div
       role="status"
       onClick={onDismiss}
-      className="absolute inset-0 z-10 bg-butter text-on-butter p-[18px] flex flex-col justify-between"
+      className="absolute inset-0 z-10 rounded-[inherit] bg-butter text-on-butter p-[18px] flex flex-col justify-between"
       initial={{ clipPath: 'circle(0% at 88% 76%)' }}
       animate={{ clipPath: 'circle(170% at 88% 76%)' }}
       transition={{ duration: 0.8, ease: [0.5, 0, 0.2, 1] }}
@@ -146,12 +182,14 @@ export function DoneFlood({ result, onDismiss }: { result: CompletionResult; onD
       </div>
       <motion.div
         className="self-end font-display text-[60px] font-bold leading-[0.9] tracking-[-0.045em] tabular-nums"
-        initial={{ opacity: 0, y: 14, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.45, type: 'spring', stiffness: 320, damping: 18 }}
-        style={{ transformOrigin: '100% 100%' }}
+        initial={{ opacity: 0, scale: calm ? 1 : 2.2, rotate: -8 }} animate={{ opacity: 1, scale: 1, rotate: -8 }}
+        transition={{ delay: 0.5, duration: 0.28, ease: [0.2, 0.9, 0.3, 1.25] }}
+        style={{ transformOrigin: '70% 60%' }}
       >
         +{result.points}
       </motion.div>
     </motion.div>
+    {!calm && <Confetti />}
+    </>
   )
 }

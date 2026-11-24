@@ -19,6 +19,11 @@
   --color-butter: #ebd98a;
   --color-on-butter: #1b1707;
   --color-coral: #ff7a4d;
+  /* Face colours: the one place the palette is allowed to be playful. */
+  --color-mint: #a8e0b0;
+  --color-peach: #f5b97a;
+  --color-tangerine: #ff9466;
+  --color-soap: #a9d3ee;
 
   --color-slate-100: #eceae0;
   --color-slate-200: #d9d6cb;
@@ -74,6 +79,7 @@ body {
   @apply bg-surface text-slate-100 antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+  overflow-x: clip; /* confetti may fly past the screen edge; never scroll sideways for it */
   min-height: 100%;
 }
 
@@ -87,6 +93,20 @@ body {
 
 .safe-top {
   padding-top: env(safe-area-inset-top);
+}
+
+/* Area faces blink now and then (see components/Face). */
+.face-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: face-blink 4.6s infinite;
+}
+@keyframes face-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96.5% { transform: scaleY(0.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .face-eyes { animation: none; }
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

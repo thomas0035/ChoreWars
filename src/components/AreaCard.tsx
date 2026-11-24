@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Card } from './ui'
-import { StatusPill, statusStripClass } from './StatusPill'
+import { StatusPill } from './StatusPill'
+import { AreaFace } from './Face'
 import { timeAgo } from '@/lib/format'
 import type { AreaView } from '@/lib/status'
 
@@ -23,7 +24,7 @@ export function AreaRow({ view, now }: { view: AreaView; now: Date }) {
 
   return (
     <Card onClick={() => nav(`/areas/${area.id}`)} className="flex items-center gap-3 py-3 pl-3.5 rounded-2xl">
-      <span className={`h-9 w-1 rounded-full shrink-0 ${statusStripClass(view)}`} />
+      <AreaFace view={view} size={30} />
       <div className="min-w-0 flex-1">
         <div className="font-display font-semibold text-[16.5px] tracking-[-0.01em] truncate">{area.name}</div>
         <div className="text-[12.5px] text-slate-400 mt-0.5 truncate">

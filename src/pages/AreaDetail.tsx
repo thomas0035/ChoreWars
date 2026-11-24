@@ -8,6 +8,7 @@ import { fetchHistory, fetchUserStats } from '@/lib/api'
 import { hoursHuman, intervalRange, timeAgo, timeUntil } from '@/lib/format'
 import { STATUS_STYLES, voterNames } from '@/lib/status'
 import { StatusPill } from '@/components/StatusPill'
+import { AreaFace } from '@/components/Face'
 import { DoneFlood, SlideToClean, useSlideComplete } from '@/components/SlideToClean'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx } from '@/components/ui'
 import { CompletionItem } from './History'
@@ -48,9 +49,10 @@ export function AreaDetailPage() {
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      <div className="relative overflow-hidden rounded-3xl bg-card p-[18px]">
+      <div className="relative rounded-3xl bg-card p-[18px]">
+        <AreaFace view={view} size={44} className="absolute right-[18px] top-[18px]" />
         <StatusPill view={view} size="md" />
-        <h1 className="text-[34px] font-bold leading-[1.1] tracking-[-0.03em] mt-0.5">{area.name}</h1>
+        <h1 className="text-[34px] font-bold leading-[1.1] tracking-[-0.03em] mt-0.5 pr-14">{area.name}</h1>
 
         <p className="mt-2 text-slate-300">
           {isActive

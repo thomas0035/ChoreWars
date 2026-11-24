@@ -41,12 +41,12 @@ export function computeStatus(
 }
 
 export const STATUS_STYLES: Record<StatusKey, { dot: string; text: string; bg: string; ring: string }> = {
-  // Butter fades to grey as an area goes stale; coral only once it likely needs doing.
-  fresh:     { dot: 'bg-butter',     text: 'text-butter',     bg: 'bg-butter/10',     ring: 'ring-butter/30' },
-  due_soon:  { dot: 'bg-butter/50',  text: 'text-slate-300',  bg: 'bg-butter/5',      ring: 'ring-butter/20' },
-  ready:     { dot: 'bg-slate-500',  text: 'text-slate-400',  bg: 'bg-slate-400/10',  ring: 'ring-slate-400/30' },
-  attention: { dot: 'bg-coral/60',   text: 'text-rose-300',   bg: 'bg-coral/10',      ring: 'ring-coral/30' },
-  unknown:   { dot: 'bg-slate-600',  text: 'text-slate-400',  bg: 'bg-slate-400/10',  ring: 'ring-slate-400/30' },
+  // Same scale as the area faces (components/Face): mint, butter, peach, tangerine, then coral once flagged.
+  fresh:     { dot: 'bg-mint',       text: 'text-mint',       bg: 'bg-mint/10',       ring: 'ring-mint/30' },
+  due_soon:  { dot: 'bg-butter',     text: 'text-butter',     bg: 'bg-butter/10',     ring: 'ring-butter/30' },
+  ready:     { dot: 'bg-peach',      text: 'text-peach',      bg: 'bg-peach/10',      ring: 'ring-peach/30' },
+  attention: { dot: 'bg-tangerine',  text: 'text-tangerine',  bg: 'bg-tangerine/10',  ring: 'ring-tangerine/30' },
+  unknown:   { dot: 'bg-slate-500',  text: 'text-slate-400',  bg: 'bg-slate-400/10',  ring: 'ring-slate-400/30' },
 }
 
 export interface AreaView {

@@ -54,15 +54,15 @@ export function GuidePage() {
           <p>That's it. Everything else (rescues, rounds, Skip Passes) is about keeping it fair and a bit competitive.</p>
         </Section>
 
-        <Section title="What the colours mean">
-          <p>Each area shows how long it's been since it was last cleaned:</p>
+        <Section title="What the faces mean">
+          <p>Each area has a little face showing how long it's been since it was last cleaned:</p>
           <ul className="space-y-1.5">
-            <Dot cls="bg-butter"><b>Fresh</b>: cleaned recently, probably fine.</Dot>
-            <Dot cls="bg-butter/50"><b>Due soon</b>: getting close to its usual cleaning time.</Dot>
-            <Dot cls="bg-slate-500"><b>Ready to check</b>: it's around the usual time. Have a look.</Dot>
-            <Dot cls="bg-coral/60"><b>Needs attention</b>: it's been a long time. It almost certainly needs cleaning.</Dot>
+            <Dot cls="bg-mint"><b>Fresh</b> (happy, green): cleaned recently, probably fine.</Dot>
+            <Dot cls="bg-butter"><b>Due soon</b> (smiling, yellow): getting close to its usual cleaning time.</Dot>
+            <Dot cls="bg-peach"><b>Ready to check</b> (straight face, peach): it's around the usual time. Have a look.</Dot>
+            <Dot cls="bg-tangerine"><b>Needs attention</b> (worried, orange): it's been a long time. It almost certainly needs cleaning.</Dot>
           </ul>
-          <p>These colours are only a hint. Nothing happens until someone <b>flags</b> the area. A flagged area turns solid coral and shows whose turn it is.</p>
+          <p>The faces are only a hint. Nothing happens until someone <b>flags</b> the area. A flagged area gets an unhappy red face and shows whose turn it is.</p>
         </Section>
 
         <Section title="Points">

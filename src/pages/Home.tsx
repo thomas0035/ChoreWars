@@ -8,6 +8,7 @@ import { fetchLeaderboard, fetchUserStats } from '@/lib/api'
 import { ordinal, randomGreeting, timeAgo, timeUntil } from '@/lib/format'
 import { voterNames, type AreaView } from '@/lib/status'
 import { AreaRow } from '@/components/AreaCard'
+import { AreaFace } from '@/components/Face'
 import { DoneFlood, SlideToClean, useSlideComplete } from '@/components/SlideToClean'
 import type { CompletionResult } from '@/lib/types'
 import { Avatar, Button, Card, ErrorBox, PageLoading, SectionTitle, cx } from '@/components/ui'
@@ -35,7 +36,7 @@ export function HomePage() {
   ]
   const others = views.filter((v) => v.isActive && !v.isMyResponsibility && v.area.id !== finished?.view.area.id)
   const calm = views.filter((v) => !v.isActive && v.area.id !== finished?.view.area.id)
-  const top3 = (lb.data ?? []).slice(0, 3)
+  const racers = (lb.data ?? []).slice(0, 6)
   const st = stats.data
 
   return (
@@ -88,23 +89,41 @@ export function HomePage() {
       </div>
 
       <SectionTitle action={<Link to="/league" className="text-[13px] font-medium text-butter">Full league</Link>}>
-        {st && st.round_no !== null ? `Round ${st.round_no}` : 'This round'}
+        {st && st.round_no !== null ? `The race · round ${st.round_no}` : 'The race'}
       </SectionTitle>
       {st && st.round_no !== null && (
         <p className="text-xs text-slate-500 -mt-1 mb-2 px-1">
-          You've had {Math.min(st.round_turns, st.round_turns_needed)} of {st.round_turns_needed} turns
+          The flag is {st.round_turns_needed} turns each. You've had {Math.min(st.round_turns, st.round_turns_needed)}. Most points at the end wins.
         </p>
       )}
-      <Card className="py-2">
-        {top3.length === 0 && <p className="text-sm text-slate-500 py-2">No points yet this round. First clean takes the lead.</p>}
-        {top3.map((r) => (
-          <div key={r.user_id} className={cx('flex items-center gap-3 py-2', r.user_id === me.id ? 'text-butter' : 'text-slate-200')}>
-            <span className="w-4 text-sm text-slate-500 tabular-nums">{r.rank}</span>
-            <Avatar name={r.name} url={r.avatar_url} size="sm" crown={r.user_id === champ} />
-            <span className={cx('flex-1 truncate', r.user_id === me.id ? 'font-semibold' : 'font-medium')}>{r.name}{r.user_id === me.id && <span className="text-slate-500 font-normal"> (you)</span>}</span>
-            <span className="font-semibold tabular-nums">{r.points}</span>
-          </div>
-        ))}
+      <Card className="relative py-2 pr-9">
+        {racers.length === 0 && <p className="text-sm text-slate-500 py-2">No points yet this round. First clean takes the lead.</p>}
+        {racers.length > 0 && (
+          <span
+            aria-hidden="true" className="absolute right-3.5 top-3 bottom-3 w-2.5 rounded-sm opacity-50"
+            style={{ background: 'repeating-conic-gradient(#eceae0 0 25%, #191917 0 50%) 0 0 / 10px 10px' }}
+          />
+        )}
+        {racers.map((r, i) => {
+          // The flag is the end of the round, which comes when everyone has had their turns. So the
+          // track shows turns taken out of turns needed; points ride along as the score. Someone
+          // sitting the round out (no turns needed) stays at the start.
+          const p = r.turns_needed ? Math.min(1, (r.own_turns ?? 0) / r.turns_needed) : 0
+          const isMe = r.user_id === me.id
+          return (
+            <div key={r.user_id} className={cx('relative h-11', i < racers.length - 1 && 'border-b border-dashed border-slate-700')}>
+              <div
+                className={cx('absolute top-1.5 flex items-center gap-2 whitespace-nowrap text-[13px]', isMe ? 'text-butter' : 'text-slate-200')}
+                style={{ left: `${p * 100}%`, transform: `translateX(${-p * 100}%)`, transition: 'left 1s cubic-bezier(0.4, 1.4, 0.5, 1), transform 1s cubic-bezier(0.4, 1.4, 0.5, 1)' }}
+              >
+                <span className={cx('max-w-[84px] truncate', isMe ? 'font-semibold' : 'text-slate-400')}>{isMe ? 'You' : r.name.split(' ')[0]}</span>
+                <Avatar name={r.name} url={r.avatar_url} size="sm" crown={r.user_id === champ} />
+                <span className="font-semibold tabular-nums">{r.points}</span>
+                {r.turns_needed != null && <span className="text-[11px] text-slate-500 tabular-nums">{Math.min(r.own_turns ?? 0, r.turns_needed)}/{r.turns_needed}</span>}
+              </div>
+            </div>
+          )
+        })}
       </Card>
 
       {sheet}
@@ -142,7 +161,7 @@ function HeroTask({ view, now, meId, skipPasses, result, onComplete, onDismissRe
     <motion.div
       layout
       initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.25 } }}
-      className="relative overflow-hidden rounded-3xl bg-card p-[18px] min-h-[208px]"
+      className="relative rounded-3xl bg-card p-[18px] min-h-[208px]"
     >
       <button onClick={() => nav(`/areas/${area.id}`)} className="text-left w-full">
         <div className="text-[12.5px] font-semibold text-coral">{covering ? `Covering ${scheduled?.name ?? 'someone'}` : 'Your turn'}</div>
@@ -176,7 +195,7 @@ function OpenTask({ view, now, meId, onVolunteer, onVote }: { view: AreaView; no
   return (
     <Card className="rounded-2xl pl-3.5">
       <button onClick={() => nav(`/areas/${area.id}`)} className="flex items-center gap-3 w-full text-left">
-        <span className="h-9 w-1 rounded-full shrink-0 bg-coral" />
+        <AreaFace view={view} size={30} />
         <div className="min-w-0 flex-1">
           <div className="font-display font-semibold text-[16.5px] tracking-[-0.01em]">{area.name}</div>
           <div className="text-[12.5px] text-slate-400 mt-0.5">
