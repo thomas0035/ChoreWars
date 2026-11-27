@@ -18,7 +18,10 @@ const COPY: Record<string, string> = {
   duplicate_member: 'Each person can only appear once in a rotation.',
   last_admin: "You're the last admin — promote someone else first.",
   cannot_remove_self: "You can't remove yourself.",
-  user_not_found: 'No account with that email. Create it in Supabase Auth first.',
+  user_not_found: 'No account with that email.',
+  invalid_email: "That doesn't look like an email address.",
+  invalid_password: 'Use a starting password of at least 6 characters.',
+  already_member: "They're already in the house.",
   unknown_setting: 'Unknown setting.',
   completion_not_found: 'That completion no longer exists.',
   not_latest_completion: 'Only the most recent completion of an area can be undone.',
@@ -83,6 +86,7 @@ export function friendlyError(err: unknown): string {
   }
   if (COPY[msg]) return COPY[msg]!
   if (msg.includes('Invalid login credentials')) return 'Wrong password. Try again.'
+  if (msg.toLowerCase().includes('banned')) return "This account isn't in the house any more. Ask an admin to add you back."
   if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) return "Can't reach the server. Check your connection."
   if (msg.includes('violates check constraint')) return 'Those values are out of range. Check minimum ≤ expected ≤ attention.'
   return msg || 'Something went wrong.'

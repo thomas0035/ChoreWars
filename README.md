@@ -85,13 +85,14 @@ Push needs the built service worker, so test with `npm run build && npm run prev
 
 | Task | Where |
 |---|---|
-| Add a new housemate | Supabase → Authentication → Users → **Add user** (email + password), then app → Admin → Members → Add member (same email) |
+| Add a new housemate | Admin → Members → **Add member** (email + display name; starting password optional, default `chorewars`) creates their login too, via `admin_create_member()`. Then add them to the areas they clean (Admin → Areas) |
 | Change rotation order / who's up | Admin → Areas → tap area → drag order with arrows, tap a number to set current turn |
 | Change intervals, points, grace, cooldown | Admin → Areas → tap area |
 | Timezone / week start / bonuses | Admin → Settings |
 | Turns per round / max round length / forfeit | Admin → Settings → League rounds |
 | Give or take points (dirty dishes, unchecked area, extra effort) | Admin → Members → tap member → **Adjust points** (reason required; undo from History until the round settles; cap under Settings → "Biggest admin adjustment") |
 | Remove an area | Admin → Areas → tap area → Remove (history is kept; it can be restored) |
+| Remove a housemate | Admin → Members → tap member → Remove from house. Their login is blocked; their history stays. Adding the same email again brings them back |
 
 ---
 

@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { useHouse, useLeagueRounds } from '@/hooks/useHouse'
 import { format } from 'date-fns'
 import {
-  adminAddMember, adminAdjustPoints, adminDiscardRound, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberAway, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
+  adminCreateMember, adminAdjustPoints, adminDiscardRound, adminRemoveMember, adminRenameMember, adminResetHouse, adminSaveArea, adminSetLastCleaned, adminSetMemberAway, adminSetMemberRole, adminSetRotation, adminSetScheduledUser, adminSetSetting, type AreaInput,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { friendlyError } from '@/lib/errors'
@@ -310,11 +310,13 @@ function toForm(a: Area | null) {
 function MembersTab() {
   const { members, me } = useHouse()
   const run = useAdminAction()
+  const toast = useToast()
   const [selected, setSelected] = useState<Member | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [newName, setNewName] = useState('')
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(false)
   const [adjusting, setAdjusting] = useState<Member | null>(null)
@@ -376,9 +378,12 @@ function MembersTab() {
             {selected.id !== me?.id && (
               !confirmRemove
                 ? <Button variant="danger" className="w-full" onClick={() => setConfirmRemove(true)}>Remove from house</Button>
-                : <Button variant="danger" className="w-full" onClick={async () => { if (await run(() => adminRemoveMember(selected.id), `${selected.name} removed`)) setSelected(null) }}>
-                    Confirm — remove {selected.name} from every rotation
-                  </Button>
+                : <>
+                    <Button variant="danger" className="w-full" onClick={async () => { if (await run(() => adminRemoveMember(selected.id), `${selected.name} removed`)) setSelected(null) }}>
+                      Confirm — remove {selected.name} from every rotation
+                    </Button>
+                    <p className="text-xs text-slate-400 mt-2">Their login stops working. Past cleanings, points and money owed are kept. Add the same email again to bring them back.</p>
+                  </>
             )}
           </div>
         )}
@@ -390,15 +395,22 @@ function MembersTab() {
         <form className="space-y-4" onSubmit={async (e) => {
           e.preventDefault()
           setBusy(true)
-          const ok = await run(() => adminAddMember(email, newName), 'Member added')
+          let created = true
+          const ok = await run(async () => { created = (await adminCreateMember(email, newName, password)).created })
           setBusy(false)
-          if (ok) { setAddOpen(false); setEmail(''); setNewName('') }
+          if (ok) {
+            toast.show(created
+              ? `Added. They sign in with ${email.trim().toLowerCase()} and password ${password || 'chorewars'}`
+              : 'They already had a login, so they were added with their existing password', 'success')
+            setAddOpen(false); setEmail(''); setNewName(''); setPassword('')
+          }
         }}>
           <p className="text-sm text-slate-400">
-            First create their login in the Supabase dashboard (Authentication → Users → Add user, with a password). Then enter the same email here.
+            Creates their login and adds them to the house. They can change the password under Profile → Change password. Then add them to the areas they clean.
           </p>
-          <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="name@house.local" /></Field>
+          <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="name@house.local" autoComplete="off" /></Field>
           <Field label="Display name"><input value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={40} placeholder="Optional" /></Field>
+          <Field label="Starting password" hint="Leave blank to use chorewars."><input value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} maxLength={72} placeholder="chorewars" autoComplete="off" spellCheck={false} /></Field>
           <Button type="submit" className="w-full" loading={busy}>Add to house</Button>
         </form>
       </Sheet>

@@ -287,8 +287,11 @@ export async function adminSetMemberAway(userId: string, away: boolean) {
 export async function adminRenameMember(userId: string, name: string) {
   return unwrap(await supabase.rpc('admin_rename_member', { p_user_id: userId, p_name: name }))
 }
-export async function adminAddMember(email: string, name?: string) {
-  return unwrap(await supabase.rpc('admin_add_member', { p_email: email, p_name: name ?? null }))
+/** Creates their login (if there isn't one yet) and adds them to the house. */
+export async function adminCreateMember(email: string, name: string, password: string) {
+  return unwrap<{ user_id: string; created: boolean }>(
+    await supabase.rpc('admin_create_member', { p_email: email, p_name: name, p_password: password }),
+  )
 }
 export async function adminRemoveMember(userId: string) {
   return unwrap(await supabase.rpc('admin_remove_member', { p_user_id: userId }))
